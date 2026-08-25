@@ -111,7 +111,7 @@ def run_stage_1(scientist_name):
     print(f"[Stage 1] Extracting structured facts for: {scientist_name}...")
     prompt = STAGE_1_PROMPT.format(scientist_name=scientist_name)
     response = client.models.generate_content(
-        model='gemini-2.0-flash',
+        model='gemini-3.6-flash',
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json"
@@ -123,7 +123,7 @@ def run_stage_2(scientist_name, stage1_json):
     print(f"[Stage 2] Generating WordPress HTML & QA for: {scientist_name}...")
     prompt = STAGE_2_PROMPT.format(scientist_name=scientist_name, stage1_json=stage1_json)
     response = client.models.generate_content(
-        model='gemini-2.0-flash',
+        model='gemini-3.6-flash',
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json"

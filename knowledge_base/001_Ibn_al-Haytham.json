@@ -1,0 +1,152 @@
+{
+  "entity_resolution": {
+    "canonical_name": "Ibn al-Haytham",
+    "arabic_name": "أبو علي، الحسن بن الحسن بن الهيثم",
+    "english_name": "Alhazen",
+    "alternative_names": [
+      "Al-Basri",
+      "Ibn al-Haitham",
+      "Alhazenus",
+      "Avennathan"
+    ],
+    "birth_date": "0965-07-01",
+    "death_date": "1040-03-06",
+    "birth_place": "Basra, Buwayhid Emirate",
+    "nationality_context": "Islamic Golden Age (Arab/Persian domain)"
+  },
+  "importance_evaluation": {
+    "score": 98,
+    "eligible_for_pipeline": true
+  },
+  "timelines": {
+    "timeline_a_biological": [
+      {
+        "year": 965,
+        "event": "Born in Basra during the Buwayhid dynasty."
+      },
+      {
+        "year": 1011,
+        "event": "Moved to Cairo under the Fatimid Caliphate; feigned madness to escape Caliph al-Hakim's punishment after assessing the Nile damming project as unfeasible."
+      },
+      {
+        "year": 1021,
+        "event": "Released from house arrest following the death of Caliph al-Hakim."
+      },
+      {
+        "year": 1040,
+        "event": "Died in Cairo at approximately age 75."
+      }
+    ],
+    "timeline_b_scientific": [
+      {
+        "year": 1011,
+        "event_type": "Theoretical Development",
+        "description": "Began drafting 'Kitab al-Manazir' (Book of Optics) during decade-long house arrest."
+      },
+      {
+        "year": 1021,
+        "event_type": "Publication",
+        "description": "Completed 'Kitab al-Manazir', establishing experimental optics and proving the intromission theory of vision."
+      },
+      {
+        "year": 1027,
+        "event_type": "Discovery",
+        "description": "Formulated Alhazen's Problem in catoptrics regarding light reflection off spherical surfaces."
+      },
+      {
+        "year": 1030,
+        "event_type": "Publication",
+        "description": "Authored 'Maqala fi al-Daw' (Treatise on Light) demonstrating camera obscura and linear propagation of light rays."
+      }
+    ]
+  },
+  "physics_analysis": [
+    {
+      "contribution_name": "Intromission Theory of Vision and Camera Obscura Optics",
+      "scientific_problem": "Determining whether vision occurs via rays emitted from the eye (extramission) or rays entering the eye from luminous sources (intromission).",
+      "hypothesis": "Light rays travel in straight lines from light-emitting or light-reflecting points on an object and enter the eye to form an image geometrically.",
+      "model_or_framework": "Geometric Ray Optics and Experimental Camera Obscura Model.",
+      "experiment_details": "Utilized a darkened chamber (al-Bayt al-Muthlim) with a small aperture (pinhole) to project images of outdoor lanterns onto a screen, showing inversion and linear propagation.",
+      "equations": [
+        {
+          "latex_raw": "\\frac{h_i}{h_o} = \\frac{d_i}{d_o}",
+          "variables_definition": {
+            "h_i": "Image height on the screen",
+            "h_o": "Object height outside the aperture",
+            "d_i": "Distance from aperture to screen",
+            "d_o": "Distance from object to aperture"
+          },
+          "validity_domain": "Geometric optics approximation where aperture diameter is significantly smaller than object distance, but large enough to ignore diffraction limits.",
+          "assumptions": "Light travels in strictly straight lines through uniform media without diffraction."
+        }
+      ],
+      "result_and_impact": "Disproved Ptolemaic and Euclidean extramission theories, laid the foundation for modern optics, and formalized the controlled empirical scientific method.",
+      "limitations_and_boundary_conditions": "Did not account for wave phenomena such as diffraction or refraction dynamics at micro-scales."
+    },
+    {
+      "contribution_name": "Alhazen's Problem in Spherical Catoptrics",
+      "scientific_problem": "Finding the point on a spherical mirror where a ray from a fixed light source reflects to an observer's eye.",
+      "hypothesis": "The point of reflection on a spherical surface can be solved geometrically via the intersection of a circle and a hyperbola, conforming to equal incident and reflected angles.",
+      "model_or_framework": "Non-linear geometric catoptrics using conic sections.",
+      "experiment_details": "Constructed specialized brass spherical, parabolic, and cylindrical mirrors to empirically verify reflection angles against theoretical conic intersection points.",
+      "equations": [
+        {
+          "latex_raw": "x^4 + a x^3 + b x^2 + c x + d = 0",
+          "variables_definition": {
+            "x": "Coordinate of the reflection point on the mirror surface",
+            "a, b, c, d": "Geometric constants derived from source location, observer location, and mirror radius"
+          },
+          "validity_domain": "Reflection off specular spherical surfaces in Euclidean 2D/3D space.",
+          "assumptions": "Smooth, ideal spherical reflecting surface governed by equal angle law (angle of incidence equals angle of reflection)."
+        }
+      ],
+      "result_and_impact": "Spurred development of geometric and analytic methods in Europe; solved algebraically centuries later by Christiaan Huygens.",
+      "limitations_and_boundary_conditions": "Required geometric conic construction; lacked modern algebraic notation for analytic reduction."
+    }
+  ],
+  "knowledge_graph_relations": {
+    "teachers": [
+      "Banu Musa (Works studied)",
+      "Aristotle (Textual influence)",
+      "Ptolemy (Textual influence)"
+    ],
+    "students": [
+      "Abu al-Wafa al-Mubashshir ibn Fatik",
+      "Sura Sarh (Ibn Sura)"
+    ],
+    "collaborators": [],
+    "precursors_built_upon": [
+      "Euclid",
+      "Ptolemy",
+      "Al-Kindi",
+      "Ibn Sahl"
+    ],
+    "influenced_scientists": [
+      "Roger Bacon",
+      "Witelo",
+      "Johannes Kepler",
+      "René Descartes",
+      "Christiaan Huygens"
+    ]
+  },
+  "verified_sources": [
+    {
+      "title": "The Optics of Ibn al-Haytham: Books I-III: On Direct Vision",
+      "institution_or_author": "A.I. Sabra, Warburg Institute",
+      "authority_level": "A",
+      "supported_claim": "Definitive translation and commentary on Ibn al-Haytham's experimental methods and intromission theory."
+    },
+    {
+      "title": "Ibn al-Haytham (Alhazen) MacTutor Biography",
+      "institution_or_author": "University of St Andrews / AIP History Network",
+      "authority_level": "A",
+      "supported_claim": "Biographical timeline, house arrest dates, and mathematical contributions to catoptrics."
+    },
+    {
+      "title": "Ibn al-Haytham's Geometrical Methods and Alhazen's Problem",
+      "institution_or_author": "American Physical Society (APS Physics History)",
+      "authority_level": "A",
+      "supported_claim": "Formulation of Alhazen's Problem and foundational role in empirical scientific experimentation."
+    }
+  ]
+}

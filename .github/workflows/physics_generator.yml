@@ -1,15 +1,11 @@
-name: Physics Knowledge Base Generator
+name: Physics Generator Pipeline
 
 on:
-  schedule:
-    - cron: '0 9 * * *' # 09:00 UTC = 12:00 PM Makkah
   workflow_dispatch:
 
 jobs:
   generate-scientist-draft:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -29,7 +25,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           WP_URL: "https://phy-lab.com/wp-json/wp/v2"
           WP_USER: "physics_generator"
-          WP_PASSWORD: ${{ secrets.WP_APPLICATION_PASSWORD }}
+          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
         run: |
           python physics_pipeline.py
 

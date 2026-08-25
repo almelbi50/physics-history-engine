@@ -3,6 +3,9 @@ name: Physics Generator Pipeline
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   generate-scientist-draft:
     runs-on: ubuntu-latest

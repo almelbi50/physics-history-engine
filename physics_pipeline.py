@@ -19,14 +19,13 @@ def clean_and_parse_json(text):
     cleaned = re.sub(r'^```\s*', '', cleaned, flags=re.MULTILINE)
     cleaned = cleaned.strip()
 
-    # Fix invalid backslashes from LaTeX (e.g. \frac, \(, \), \begin) for JSON safety
-    # Replace backslashes that are NOT followed by valid JSON escape chars (", \, /, b, f, n, r, t, u)
+    # Escape raw backslashes for LaTeX formatting (e.g. \frac, \(, \), \begin) to preserve JSON structural integrity
     cleaned_escaped = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', cleaned)
 
     try:
         return json.loads(cleaned_escaped, strict=False)
     except json.JSONDecodeError:
-        # Fallback raw parse
+        # Fallback raw parse if regex escaping fails
         return json.loads(cleaned, strict=False)
 
 # 2. Stage 1 Prompt Schema Definition
@@ -129,7 +128,7 @@ def run_stage_1(scientist_name):
     print(f"[Stage 1] Extracting structured facts for: {scientist_name}...")
     prompt = STAGE_1_PROMPT.format(scientist_name=scientist_name)
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-3.6-flash',
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json"
@@ -141,7 +140,7 @@ def run_stage_2(scientist_name, stage1_json):
     print(f"[Stage 2] Generating WordPress HTML & QA for: {scientist_name}...")
     prompt = STAGE_2_PROMPT.format(scientist_name=scientist_name, stage1_json=stage1_json)
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-3.6-flash',
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json"

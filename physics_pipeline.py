@@ -7,20 +7,27 @@ from google.genai import types
 
 # 1. Configuration & Setup
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-WP_URL = os.getenv("WP_URL", "[https://phy-lab.com/wp-json/wp/v2](https://phy-lab.com/wp-json/wp/v2)")
+WP_URL = os.getenv("WP_URL", "https://phy-lab.com/wp-json/wp/v2")
 WP_USER = os.getenv("WP_USER", "physics_generator")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-# Helper function to clean and parse JSON safely
 def clean_and_parse_json(text):
-    # Remove markdown code blocks if present
+    # Remove markdown block ticks if present
     cleaned = re.sub(r'^```json\s*', '', text.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r'^```\s*', '', cleaned, flags=re.MULTILINE)
     cleaned = cleaned.strip()
-    # parse with strict=False to allow unescaped control characters in HTML strings
-    return json.loads(cleaned, strict=False)
+
+    # Fix invalid backslashes from LaTeX (e.g. \frac, \(, \), \begin) for JSON safety
+    # Replace backslashes that are NOT followed by valid JSON escape chars (", \, /, b, f, n, r, t, u)
+    cleaned_escaped = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', cleaned)
+
+    try:
+        return json.loads(cleaned_escaped, strict=False)
+    except json.JSONDecodeError:
+        # Fallback raw parse
+        return json.loads(cleaned, strict=False)
 
 # 2. Stage 1 Prompt Schema Definition
 STAGE_1_PROMPT = """
@@ -95,11 +102,11 @@ JSON Data:
 {stage1_json}
 
 Strict Formatting Constraints:
-1. All LaTeX inline equations must use \\( ... \\) format.
-2. All LaTeX block equations must use \\[ ... \\] format.
+1. All LaTeX inline equations must use \\\\( ... \\\\) format (double escape).
+2. All LaTeX block equations must use \\\\[ ... \\\\] format (double escape).
 3. Use standard HTML tags (<h2>, <h3>, <p>, <ul>, <li>, <table>, <blockquote>). NO markdown headings (##).
 4. Tone must be strictly objective, academic, without hyperbolic fluff ("genius", "greatest").
-5. Write all string values (especially html_content) on single-line escaped strings within the JSON, or ensure valid JSON formatting.
+5. Write in rich Arabic language suitable for a university physics education platform.
 6. Return JSON containing the rendered HTML article and SEO Metadata in this exact structure:
 
 {{
@@ -122,7 +129,7 @@ def run_stage_1(scientist_name):
     print(f"[Stage 1] Extracting structured facts for: {scientist_name}...")
     prompt = STAGE_1_PROMPT.format(scientist_name=scientist_name)
     response = client.models.generate_content(
-        model='gemini-3.6-flash',
+        model='gemini-2.5-flash',
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json"
@@ -134,7 +141,7 @@ def run_stage_2(scientist_name, stage1_json):
     print(f"[Stage 2] Generating WordPress HTML & QA for: {scientist_name}...")
     prompt = STAGE_2_PROMPT.format(scientist_name=scientist_name, stage1_json=stage1_json)
     response = client.models.generate_content(
-        model='gemini-3.6-flash',
+        model='gemini-2.5-flash',
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json"

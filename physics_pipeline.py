@@ -1,4 +1,153 @@
+import os
+import json
+import re
 import sys
+import requests
+from google import genai
+from google.genai import types
+
+# 1. Configuration & Setup
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+WP_URL = os.getenv("WP_URL", "https://phy-lab.com/wp-json/wp/v2")
+WP_USER = os.getenv("WP_USER", "physics_generator")
+WP_PASSWORD = os.getenv("WP_PASSWORD")
+
+client = genai.Client(api_key=GEMINI_API_KEY)
+
+def clean_and_parse_json(text):
+    # Remove markdown block ticks if present
+    cleaned = re.sub(r'^```json\s*', '', text.strip(), flags=re.MULTILINE)
+    cleaned = re.sub(r'^```\s*', '', cleaned, flags=re.MULTILINE)
+    cleaned = cleaned.strip()
+
+    # Escape raw backslashes for LaTeX formatting (e.g. \frac, \(, \), \begin) to preserve JSON structural integrity
+    cleaned_escaped = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', cleaned)
+
+    try:
+        return json.loads(cleaned_escaped, strict=False)
+    except json.JSONDecodeError:
+        # Fallback raw parse if regex escaping fails
+        return json.loads(cleaned, strict=False)
+
+# 2. Stage 1 Prompt Schema Definition
+STAGE_1_PROMPT = """
+You are a specialized Physics Historian and Fact-Extraction Engine for phy-lab.com.
+Target Scientist: {scientist_name}
+
+Perform deep identity verification, timeline analysis, and physics modeling check using authoritative sources (AIP History Network, APS, Nobel Prize archives).
+Return ONLY a valid JSON matching this schema without markdown code blocks or additional text:
+
+{{
+  "entity_resolution": {{
+    "canonical_name": "",
+    "arabic_name": "",
+    "english_name": "",
+    "alternative_names": [],
+    "birth_date": "YYYY-MM-DD",
+    "death_date": "YYYY-MM-DD",
+    "birth_place": "",
+    "nationality_context": ""
+  }},
+  "importance_evaluation": {{
+    "score": 0,
+    "eligible_for_pipeline": true
+  }},
+  "timelines": {{
+    "timeline_a_biological": [{{"year": 0, "event": ""}}],
+    "timeline_b_scientific": [{{"year": 0, "event_type": "", "description": ""}}]
+  }},
+  "physics_analysis": [
+    {{
+      "contribution_name": "",
+      "scientific_problem": "",
+      "hypothesis": "",
+      "model_or_framework": "",
+      "experiment_details": "",
+      "equations": [
+        {{
+          "latex_raw": "",
+          "variables_definition": {{}},
+          "validity_domain": "",
+          "assumptions": ""
+        }}
+      ],
+      "result_and_impact": "",
+      "limitations_and_boundary_conditions": ""
+    }}
+  ],
+  "knowledge_graph_relations": {{
+    "teachers": [],
+    "students": [],
+    "collaborators": [],
+    "precursors_built_upon": [],
+    "influenced_scientists": []
+  }},
+  "verified_sources": [
+    {{
+      "title": "",
+      "institution_or_author": "",
+      "authority_level": "A",
+      "supported_claim": ""
+    }}
+  ]
+}}
+"""
+
+# 3. Stage 2 Prompt Schema Definition
+STAGE_2_PROMPT = """
+You are an Academic Physics Editor writing for phy-lab.com.
+Based ONLY on the verified JSON structured data provided below for {scientist_name}, synthesize a publication-ready HTML article for WordPress.
+
+JSON Data:
+{stage1_json}
+
+Strict Formatting Constraints:
+1. All LaTeX inline equations must use \\\\( ... \\\\) format (double escape).
+2. All LaTeX block equations must use \\\\[ ... \\\\] format (double escape).
+3. Use standard HTML tags (<h2>, <h3>, <p>, <ul>, <li>, <table>, <blockquote>). NO markdown headings (##).
+4. Tone must be strictly objective, academic, without hyperbolic fluff ("genius", "greatest").
+5. Write in rich Arabic language suitable for a university physics education platform.
+6. Return JSON containing the rendered HTML article and SEO Metadata in this exact structure:
+
+{{
+  "post_title": "",
+  "html_content": "",
+  "seo": {{
+    "meta_description": "",
+    "primary_keyword": "",
+    "slug": ""
+  }},
+  "qa_evaluation": {{
+    "quality_score": 95,
+    "critical_errors": [],
+    "publish_recommendation": "PUBLISH"
+  }}
+}}
+"""
+
+def run_stage_1(scientist_name):
+    print(f"[Stage 1] Extracting structured facts for: {scientist_name}...")
+    prompt = STAGE_1_PROMPT.format(scientist_name=scientist_name)
+    response = client.models.generate_content(
+        model='gemini-3.6-flash',
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
+    )
+    return response.text
+
+def run_stage_2(scientist_name, stage1_json):
+    print(f"[Stage 2] Generating WordPress HTML & QA for: {scientist_name}...")
+    prompt = STAGE_2_PROMPT.format(scientist_name=scientist_name, stage1_json=stage1_json)
+    response = client.models.generate_content(
+        model='gemini-3.6-flash',
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
+    )
+    return clean_and_parse_json(response.text)
 
 def post_to_wordpress(article_data):
     print("[WordPress API] Uploading draft to phy-lab.com...")
@@ -20,7 +169,10 @@ def post_to_wordpress(article_data):
     
     if response.status_code in [200, 201]:
         res_json = response.json()
-        print(f" Successfully created WP Draft ID: {res_json.get('id')} - {res_json.get('link')}")
+        print("--------------------------------------------------")
+        print(f" SUCCESS! Draft Created with ID: {res_json.get('id')}")
+        print(f" Direct Edit URL: https://phy-lab.com/wp-admin/post.php?post={res_json.get('id')}&action=edit")
+        print("--------------------------------------------------")
         return True
     else:
         print(f" Failed to post to WordPress: {response.status_code} - {response.text}")
@@ -59,6 +211,8 @@ def process_next_scientist():
     quality_score = qa.get("quality_score", 0)
     critical_errors = qa.get("critical_errors", [])
 
+    print(f"[QA Evaluation] Score: {quality_score} | Errors: {critical_errors}")
+
     if quality_score >= 90 and len(critical_errors) == 0:
         success = post_to_wordpress(article_data)
         if success:
@@ -72,3 +226,6 @@ def process_next_scientist():
     else:
         print(f"QA Failed (Score: {quality_score}). Errors: {critical_errors}.")
         sys.exit(1)
+
+if __name__ == "__main__":
+    process_next_scientist()

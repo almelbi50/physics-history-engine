@@ -1,16 +1,26 @@
 import os
 import json
+import re
 import requests
 from google import genai
 from google.genai import types
 
 # 1. Configuration & Setup
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-WP_URL = os.getenv("WP_URL", "https://phy-lab.com/wp-json/wp/v2")
+WP_URL = os.getenv("WP_URL", "[https://phy-lab.com/wp-json/wp/v2](https://phy-lab.com/wp-json/wp/v2)")
 WP_USER = os.getenv("WP_USER", "physics_generator")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
+
+# Helper function to clean and parse JSON safely
+def clean_and_parse_json(text):
+    # Remove markdown code blocks if present
+    cleaned = re.sub(r'^```json\s*', '', text.strip(), flags=re.MULTILINE)
+    cleaned = re.sub(r'^```\s*', '', cleaned, flags=re.MULTILINE)
+    cleaned = cleaned.strip()
+    # parse with strict=False to allow unescaped control characters in HTML strings
+    return json.loads(cleaned, strict=False)
 
 # 2. Stage 1 Prompt Schema Definition
 STAGE_1_PROMPT = """
@@ -89,7 +99,8 @@ Strict Formatting Constraints:
 2. All LaTeX block equations must use \\[ ... \\] format.
 3. Use standard HTML tags (<h2>, <h3>, <p>, <ul>, <li>, <table>, <blockquote>). NO markdown headings (##).
 4. Tone must be strictly objective, academic, without hyperbolic fluff ("genius", "greatest").
-5. Return JSON containing the rendered HTML article and SEO Metadata in this exact structure:
+5. Write all string values (especially html_content) on single-line escaped strings within the JSON, or ensure valid JSON formatting.
+6. Return JSON containing the rendered HTML article and SEO Metadata in this exact structure:
 
 {{
   "post_title": "",
@@ -129,7 +140,7 @@ def run_stage_2(scientist_name, stage1_json):
             response_mime_type="application/json"
         )
     )
-    return json.loads(response.text)
+    return clean_and_parse_json(response.text)
 
 def post_to_wordpress(article_data):
     print("[WordPress API] Uploading draft to phy-lab.com...")

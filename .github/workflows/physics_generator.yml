@@ -1,42 +1,45 @@
-name: Physics Generator Pipeline
+name: Daily Physics Auto-Post Pipeline
 
 on:
-  workflow_dispatch:
-
-permissions:
-  contents: write
+  schedule:
+    # Running daily at 09:00 UTC (12:00 PM Saudi Arabia Time)
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
 
 jobs:
   generate-scientist-draft:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python Environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
-      - name: Install Dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai requests
+          pip install google-generativeai requests
 
-      - name: Execute Pipeline
+      - name: Execute Physics Pipeline Engine
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          WP_URL: "https://phy-lab.com/wp-json/wp/v2"
-          WP_USER: "physics_generator"
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USER: ${{ secrets.WP_USER }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
         run: |
           python physics_pipeline.py
 
-      - name: Commit and Push Updated Status
+      - name: Commit and Push Updated scientists.json Queue
+        if: success()
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
           git add scientists.json knowledge_base/
           git status
-          git diff-index --quiet HEAD || git commit -m "auto: process scientist and update knowledge base [skip ci]"
+          git diff-index --quiet HEAD || git commit -m "Auto-update: Queue state and generated Knowledge Base"
           git push

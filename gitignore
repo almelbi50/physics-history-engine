@@ -1,0 +1,114 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets & Credentials
+*.key
+*.pem
+*.crt
+secrets/
+credentials/
+config/secrets.json
+
+# API Keys & Sensitive Data
+gemini_key.txt
+wp_password.txt
+api_keys.txt
+*.secret
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+
+# Logs
+*.log
+logs/
+debug.log
+
+# Temporary Files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# OS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Git
+.git/
+.gitignore
+
+# Node (if needed in future)
+node_modules/
+npm-debug.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Local development
+local_config.json
+.local/
+
+# Knowledge base (optional - uncomment if you want to share this)
+# knowledge_base/
+
+# Misc
+.cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json

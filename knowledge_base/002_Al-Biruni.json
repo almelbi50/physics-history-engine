@@ -1,0 +1,158 @@
+{
+  "entity_resolution": {
+    "canonical_name": "Abu Rayhan al-Biruni",
+    "arabic_name": "أبو الريحان محمد بن أحمد البيروني",
+    "english_name": "Al-Biruni",
+    "alternative_names": [
+      "Abu Rayhan Biruni",
+      "Alberonius",
+      "Muhammad ibn Ahmad al-Biruni"
+    ],
+    "birth_date": "0973-09-04",
+    "death_date": "1048-12-09",
+    "birth_place": "Kath, Khwarazm (modern-day Beruniy, Uzbekistan)",
+    "nationality_context": "Islamic Golden Age (Khwarazmian / Persian polymath)"
+  },
+  "importance_evaluation": {
+    "score": 95,
+    "eligible_for_pipeline": true
+  },
+  "timelines": {
+    "timeline_a_biological": [
+      {
+        "year": 973,
+        "event": "Born in Kath, the capital of the Afrighid dynasty of Khwarazm."
+      },
+      {
+        "year": 995,
+        "event": "Fled Khwarazm following political upheaval and civil war, moving to Rayy."
+      },
+      {
+        "year": 998,
+        "event": "Joined the court of Ziyarid ruler Shams al-Ma'ali Qabus in Tabaristan."
+      },
+      {
+        "year": 1017,
+        "event": "Taken to Ghazni by Sultan Mahmud of Ghazni; subsequently traveled throughout the Indian subcontinent."
+      },
+      {
+        "year": 1048,
+        "event": "Died in Ghazni (modern-day Afghanistan)."
+      }
+    ],
+    "timeline_b_scientific": [
+      {
+        "year": 990,
+        "event_type": "Observation",
+        "description": "Constructed an astronomical instrument to measure the solar meridian transit in Kath."
+      },
+      {
+        "year": 1000,
+        "event_type": "Publication",
+        "description": "Completed 'The Remaining Signs of Past Centuries' (Kitab al-Athar al-Baqiyah), a foundational work on chronologies and calendars."
+      },
+      {
+        "year": 1017,
+        "event_type": "Experimental Discovery",
+        "description": "Calculated the radius of the Earth using trigonometric dip-angle measurements from a mountain at Nandana Fort."
+      },
+      {
+        "year": 1030,
+        "event_type": "Publication",
+        "description": "Authored 'Kitab al-Hind' (Indica) and completed 'Al-Qanun al-Mas'udi', a comprehensive encyclopedia of astronomy and geodesy."
+      },
+      {
+        "year": 1040,
+        "event_type": "Publication",
+        "description": "Wrote 'Kitab al-Jamahir fi Ma'rifat al-Jawahir', detailing experimental methods in hydrostatic density measurement."
+      }
+    ]
+  },
+  "physics_analysis": [
+    {
+      "contribution_name": "Geodetic Determination of Earth Radius via Horizon Dip Angle",
+      "scientific_problem": "Determining the radius and circumference of the Earth accurately without requiring long overland distance measurement surveys across flat land.",
+      "hypothesis": "The Earth's radius can be derived by combining the measured height of a mountain with the dip angle of the sea or plain horizon viewed from its peak.",
+      "model_or_framework": "Spherical Geodesy and Trigonometry",
+      "experiment_details": "Al-Biruni measured the height of a mountain at Nandana (in modern Pakistan) using two sighting angles on a nearby flat plain. He then climbed to the peak and used an astrolabe to measure the dip angle (the angle between the true horizontal plane and the visual horizon).",
+      "equations": [
+        {
+          "latex_raw": "R = \\frac{h \\cos\\theta}{1 - \\cos\\theta}",
+          "variables_definition": {
+            "R": "Radius of the Earth",
+            "h": "Height of the mountain above the surrounding plain",
+            "\\theta": "Dip angle of the horizon below the local horizontal"
+          },
+          "validity_domain": "Macroscopic terrestrial geodesy assuming spherical Earth symmetry.",
+          "assumptions": "Earth is perfectly spherical; light travels in straight paths; atmospheric refraction near horizon is constant or negligible."
+        }
+      ],
+      "result_and_impact": "Calculated the Earth's radius to be approximately 6,339.6 km (3,928.7 miles), which is within 1% of modern mean Earth radius values (~6,371 km). This method drastically reduced the physical labor needed for large-scale geographic measurements.",
+      "limitations_and_boundary_conditions": "Highly sensitive to errors in measuring the small dip angle \\theta and atmospheric refraction variations near the line of sight."
+    },
+    {
+      "contribution_name": "Precision Hydrostatic Specific Gravity Determination",
+      "scientific_problem": "Determining the purity and material identity of metals and gemstones by accurately measuring their specific gravity relative to water.",
+      "hypothesis": "By designing an overflow hydrostatic vessel (pycnometer prototype) and using precise balance mechanics, relative density can be calculated by measuring the displaced mass of water directly.",
+      "model_or_framework": "Archimedean Hydrostatics and Experimental Metrology",
+      "experiment_details": "Al-Biruni constructed a specialized conical vessel filled with water up to a precise lateral spout. Inserting a solid displaced an exact volume of water through the spout into a receptacle, allowing ratio measurements between the mass of the solid and the mass of equal-volume displaced water.",
+      "equations": [
+        {
+          "latex_raw": "\\rho_{rel} = \\frac{W_{air}}{W_{air} - W_{water}}",
+          "variables_definition": {
+            "\\rho_{rel}": "Specific gravity (density relative to water)",
+            "W_{air}": "Weight of the solid sample measured in air",
+            "W_{water}": "Apparent weight of the solid sample submerged in water"
+          },
+          "validity_domain": "Incompressible non-porous solids and static liquids.",
+          "assumptions": "Water temperature remains constant; fluids are incompressible; no air bubbles adhere to the submerged sample surface."
+        }
+      ],
+      "result_and_impact": "Determined the specific gravity of 18 metals and precious stones (e.g., gold = 19.05, mercury = 13.56, iron = 7.82) matching modern values to within 1-2% accuracy, laying foundational techniques for quantitative mineralogy.",
+      "limitations_and_boundary_conditions": "Limited by surface tension at the vessel spout and lack of temperature standardization for liquid density."
+    }
+  ],
+  "knowledge_graph_relations": {
+    "teachers": [
+      "Abu Nasr Mansur ibn Iraq"
+    ],
+    "students": [
+      "Abul-Hasan al-Ahwazi"
+    ],
+    "collaborators": [
+      "Ibn Sina (Avicenna) [scholarly correspondence on natural philosophy and physics]"
+    ],
+    "precursors_built_upon": [
+      "Archimedes",
+      "Ptolemy",
+      "Aryabhata",
+      "Al-Battani",
+      "Al-Khwarizmi"
+    ],
+    "influenced_scientists": [
+      "Al-Khazini",
+      "Nasir al-Din al-Tusi",
+      "Omar Khayyam"
+    ]
+  },
+  "verified_sources": [
+    {
+      "title": "Al-Biruni's Measurement of the Earth",
+      "institution_or_author": "E. S. Kennedy (Dictionary of Scientific Biography)",
+      "authority_level": "A",
+      "supported_claim": "Verification of Al-Biruni's trigonometric method for computing Earth radius at Nandana Fort."
+    },
+    {
+      "title": "Kitab fi Ma'rifat al-Jawahir (The Book of Most Precious Stones)",
+      "institution_or_author": "Al-Biruni (Critical edition edited by F. Krenkow)",
+      "authority_level": "A",
+      "supported_claim": "Original description of the conical apparatus and specific gravity measurements of 18 materials."
+    },
+    {
+      "title": "Kitab Tahdid Nihayat al-Amakin (The Determination of the Coordinates of Positions)",
+      "institution_or_author": "Al-Biruni (Translated by J. Ali, American University of Beirut)",
+      "authority_level": "A",
+      "supported_claim": "Textual primary source detailing mathematical geodesy and dip-angle formula application."
+    }
+  ]
+}

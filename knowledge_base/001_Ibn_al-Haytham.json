@@ -1,18 +1,19 @@
 {
   "entity_resolution": {
-    "canonical_name": "Ibn al-Haytham",
-    "arabic_name": "أبو علي، الحسن بن الحسن بن الهيثم",
-    "english_name": "Alhazen",
+    "canonical_name": "Abū ʿAlī al-Ḥasan ibn al-Ḥasan ibn al-Haytham",
+    "arabic_name": "أبو علي الحسن بن الحسن بن الهيثم",
+    "english_name": "Ibn al-Haytham",
     "alternative_names": [
-      "Al-Basri",
-      "Ibn al-Haitham",
+      "Alhazen",
       "Alhazenus",
-      "Avennathan"
+      "Avennathan",
+      "Avenetan",
+      "Al-Basri"
     ],
     "birth_date": "0965-07-01",
     "death_date": "1040-03-06",
-    "birth_place": "Basra, Buwayhid Emirate (modern-day Iraq)",
-    "nationality_context": "Islamic Golden Age (Arab/Abbasid/Fatimid Era)"
+    "birth_place": "Basra, Buwayhid Emirate (Modern Iraq)",
+    "nationality_context": "Islamic Golden Age / Arab Scholar"
   },
   "importance_evaluation": {
     "score": 98,
@@ -22,105 +23,135 @@
     "timeline_a_biological": [
       {
         "year": 965,
-        "event": "Born in Basra during the Buwayhid dynasty."
+        "event": "Born in Basra, during the Buwayhid dynasty."
       },
       {
         "year": 1011,
-        "event": "Moved to Cairo under the Fatimid Caliphate; feigned madness to escape Caliph Al-Hakim's wrath over Nile regulation failure and was placed under house arrest."
+        "event": "Summoned to Cairo by Fatimid Caliph al-Hakim bi-Amr Allah to regulate the flooding of the Nile."
+      },
+      {
+        "year": 1011,
+        "event": "Feigned madness to escape execution after realizing the Nile dam project was unfeasible; placed under house arrest."
       },
       {
         "year": 1021,
-        "event": "Released from house arrest following the death of Caliph Al-Hakim; continued independent research near Al-Azhar Mosque."
+        "event": "Released from house arrest following Caliph al-Hakim's death; spent remaining years near the Al-Azhar Mosque writing and translating."
       },
       {
         "year": 1040,
-        "event": "Died in Cairo at the age of approximately 74."
+        "event": "Died in Cairo, Egypt."
       }
     ],
     "timeline_b_scientific": [
       {
         "year": 1011,
-        "event_type": "Experimental Formulation",
-        "description": "Initiated systematic optical experiments and draftings of Kitab al-Manazir (Book of Optics) while under house arrest."
+        "event_type": "Experimental Physics & Optics",
+        "description": "Began drafting Kitāb al-Manāẓir (Book of Optics) while under house arrest, establishing experimental optics."
       },
       {
         "year": 1021,
-        "event_type": "Publication / Major Discovery",
-        "description": "Completed Kitab al-Manazir, establishing the intromission theory of vision and the modern scientific method."
+        "event_type": "Publication / Treatise Completion",
+        "description": "Completed Kitāb al-Manāẓir, detailing the intromission theory of vision, laws of reflection, and early camera obscura observations."
       },
       {
-        "year": 1025,
-        "event_type": "Astronomical Analysis",
-        "description": "Authored 'Maqala fi Daw al-Qamar' (On the Light of the Moon), demonstrating that the Moon shines by reflected sunlight."
+        "year": 1028,
+        "event_type": "Mathematical Astronomy",
+        "description": "Authored 'Al-Shukūk 'alā Baṭlamyūs' (Doubts Concerning Ptolemy), critiquing Ptolemaic planetary models on physical grounds."
       },
       {
         "year": 1030,
-        "event_type": "Mathematical Physics",
-        "description": "Formulated and solved 'Alhazen's Problem' concerning spherical reflection using conic sections."
+        "event_type": "Catoptrics & Geometry",
+        "description": "Formulated Alhazen's Problem regarding reflection from spherical surfaces in 'On Burning Mirrors'."
       }
     ]
   },
   "physics_analysis": [
     {
-      "contribution_name": "Intromission Theory of Optics and Pinhole Camera Dynamics",
-      "scientific_problem": "Resolving the dispute between Euclidean/Ptolemaic extramission (eye emits rays) and Aristotelian intromission (forms enter eye), and quantifying light propagation geometrically.",
-      "hypothesis": "Light rays radiate in straight lines from every point on an illuminated object in all directions and enter the eye to form an image without the eye emitting light.",
-      "model_or_framework": "Ray optics framework combined with controlled physical aperture models (Camera Obscura / Al-Bayt al-Muthlim).",
-      "experiment_details": "Constructed a dark room with a small hole admitting light from outside candles to project inverted images on a screen; utilized water-filled glass globes to isolate refraction from reflection.",
+      "contribution_name": "Intromission Theory of Vision and Camera Obscura Kinematics",
+      "scientific_problem": "Resolving the dispute between emission theory (Euclid, Ptolemy) and intromission theory (Aristotle, Epicurus) regarding how human vision functions.",
+      "hypothesis": "Light rays travel rectilinearly in all directions from every point on an illuminated object and physically enter the eye to form an image.",
+      "model_or_framework": "Ray optics framework integrated with anatomical ocular geometry and dark-chamber (camera obscura) pinhole projections.",
+      "experiment_details": "Constructed controlled dark chambers with small apertures to measure light projection from multiple candles onto opposite walls, proving non-interfering rectilinear propagation of light.",
+      "equations": [
+        {
+          "latex_raw": "\\frac{h_i}{h_o} = \\frac{d_i}{d_o}",
+          "variables_definition": {
+            "h_i": "Image height projected on the internal screen",
+            "h_o": "Object height outside the aperture",
+            "d_i": "Distance from aperture to screen",
+            "d_o": "Distance from aperture to object"
+          },
+          "validity_domain": "Geometric optics approximation where aperture diameter is much smaller than object distance, but large compared to wavelength.",
+          "assumptions": "Light travels in straight lines in isotropic, homogeneous media."
+        }
+      ],
+      "result_and_impact": "Disproved emission theory; established mathematical basis for modern ocular physiology, optical instrumentation, and image projection.",
+      "limitations_and_boundary_conditions": "Did not account for wave diffraction effects when the pinhole becomes extremely small."
+    },
+    {
+      "contribution_name": "Alhazen's Problem (Spherical Reflection)",
+      "scientific_problem": "Determining the exact point on a spherical mirror where a ray from a fixed point light source reflects to reach a stationary observer's eye.",
+      "hypothesis": "The point of reflection can be geometrically solved by intersecting a specific hyperbola with the circular cross-section of the mirror.",
+      "model_or_framework": "Geometric catoptrics utilizing conic sections (hyperbolas and circles).",
+      "experiment_details": "Constructed precise metallic spherical mirrors and graduated visual devices to verify reflection angles.",
       "equations": [
         {
           "latex_raw": "\\theta_i = \\theta_r",
           "variables_definition": {
-            "\\theta_i": "Angle of incidence measured relative to the surface normal",
-            "\\theta_r": "Angle of reflection measured relative to the surface normal"
+            "\\theta_i": "Angle of incidence measured relative to the surface normal vector at the reflection point",
+            "\\theta_r": "Angle of reflection measured relative to the surface normal vector at the reflection point"
           },
-          "validity_domain": "Specular reflection on plane, spherical, cylindrical, and parabolic mirrors",
-          "assumptions": "Light travels as straight lines in uniform isotropic homogeneous media."
+          "validity_domain": "Specular reflection on smooth curved conducting surfaces.",
+          "assumptions": "Mirror surface is perfectly spherical and local reflection obeys planar catoptrics relative to the tangent plane."
         }
       ],
-      "result_and_impact": "Overthrew 1,000 years of extramission theory, introduced controlled quantitative empirical testing, and laid the foundations for modern optics, influencing Kepler, Bacon, and Descartes.",
-      "limitations_and_boundary_conditions": "Lacked precise non-linear formulation for Snell's Law (sine law), relying instead on experimental angular tables for refraction."
+      "result_and_impact": "Led to a fourth-degree polynomial solution that challenged geometry for centuries, influencing Huygens, Barrow, and Newton.",
+      "limitations_and_boundary_conditions": "Analytical solution required methods equivalent to modern algebraic geometry or calculus unavailable in the 11th century."
     },
     {
-      "contribution_name": "Alhazen's Reflection Problem",
-      "scientific_problem": "Determining the exact point on a spherical mirror where a ray from a fixed light source reflects to reach an observer's eye.",
-      "hypothesis": "The point of reflection corresponds to the intersection of a circle representing the mirror boundary and a hyperbola derived from the geometric locus of points maintaining equal angles to source and receiver.",
-      "model_or_framework": "Geometric catoptrics utilizing intersection of conic sections.",
-      "experiment_details": "Analytical geometric derivation validated using polished spherical metal mirrors and geometric construction.",
+      "contribution_name": "Empirical Law of Optical Refraction Analysis",
+      "scientific_problem": "Quantifying the angle of refraction when light passes across interfaces between media of different optical densities.",
+      "hypothesis": "The angle of refraction is systematically related to the angle of incidence, decreasing when moving into a denser medium, with refraction occurring within the plane of incidence.",
+      "model_or_framework": "Experimental catoptrics and dioptrics using graduated vessels and glass/water interfaces.",
+      "experiment_details": "Designed a custom cylindrical metal vessel with angular graduations to systematically measure angles of incidence and refraction in air, glass, and water.",
       "equations": [
         {
-          "latex_raw": "r^4 - 2(x_1 + x_2)r^3 + (x_1^2 + y_1^2 + x_2^2 + y_2^2)r^2 - 2r(x_1(x_2^2+y_2^2) + x_2(x_1^2+y_1^2)) + (x_1^2+y_1^2)(x_2^2+y_2^2) = 0",
+          "latex_raw": "\\frac{\\sin \\theta_1}{\\sin \\theta_2} = C",
           "variables_definition": {
-            "r": "Radius of the spherical mirror",
-            "(x_1, y_1)": "Coordinates of the light source point",
-            "(x_2, y_2)": "Coordinates of the observer's eye point"
+            "\\theta_1": "Angle of incidence in Medium 1",
+            "\\theta_2": "Angle of refraction in Medium 2",
+            "C": "Constant index relative to media pair (early form of Snell's Law ratio)"
           },
-          "validity_domain": "2D plane slice of 3D spherical mirror reflection geometry",
-          "assumptions": "Reflection follows the law of equal angles on tangential planes."
+          "validity_domain": "Isotropic dielectric non-dispersive media.",
+          "assumptions": "Light travels slower in optically denser media."
         }
       ],
-      "result_and_impact": "Provided a geometric solution requiring fourth-degree polynomial operations, driving advances in catoptrics and conic section theory up to Huygens and Barrow.",
-      "limitations_and_boundary_conditions": "Solved purely through geometric constructions of conic sections without modern algebraic notation."
+      "result_and_impact": "Provided the most extensive set of empirical refractive data prior to Snell and Descartes; identified that perpendicular rays pass unrefracted.",
+      "limitations_and_boundary_conditions": "Approximate geometric formulations were used rather than exact trigonometric sine ratios for small angles."
     }
   ],
   "knowledge_graph_relations": {
     "teachers": [
-      "Euclid (via texts)",
-      "Ptolemy (via texts)",
-      "Aristotle (via texts)"
+      "Ibn Sahl"
     ],
     "students": [
-      "Sorkhab (Persian student who studied under him in Cairo)"
+      "Sūrābādī",
+      "Abu al-Wafa al-Mubashshir ibn Fatik"
     ],
     "collaborators": [],
     "precursors_built_upon": [
-      "Al-Kindi (pioneered early optics in Islamic world)",
-      "Ibn Sahl (discovered law of refraction precursor)",
-      "Hero of Alexandria (catoptrics and shortest light path)"
+      "Euclid",
+      "Ptolemy",
+      "Aristotle",
+      "Galen",
+      "Banū Mūsā",
+      "Ibn Sahl"
     ],
     "influenced_scientists": [
+      "Kamāl al-Dīn al-Fārisī",
       "Roger Bacon",
       "Witelo",
+      "Biagio Pelacani da Parma",
       "Johannes Kepler",
       "René Descartes",
       "Christiaan Huygens"
@@ -128,22 +159,22 @@
   },
   "verified_sources": [
     {
-      "title": "The Optics of Ibn al-Haytham: Books I-III",
-      "institution_or_author": "A.I. Sabra / Warburg Institute",
+      "title": "The Optics of Ibn al-Haytham: Books I-III: On Direct Vision",
+      "institution_or_author": "A. I. Sabra (Warburg Institute, University of London)",
       "authority_level": "A",
-      "supported_claim": "Critical translation and validation of Ibn al-Haytham's experimental methods and intromission theory."
+      "supported_claim": "Detailed translation and analysis confirming Ibn al-Haytham's experimental methods, intromission theory, and camera obscura proofs."
     },
     {
-      "title": "Ibn al-Haytham and the Scientific Method",
-      "institution_or_author": "APS News / American Physical Society",
+      "title": "Ibn al-Haytham's Theory of Visual Perception",
+      "institution_or_author": "Mark Smith (American Philosophical Society)",
       "authority_level": "A",
-      "supported_claim": "Establishes Ibn al-Haytham as a key originator of the modern empirical scientific method."
+      "supported_claim": "Establishes Alhazen's solution to spherical reflection and the transmission of optics into Latin Europe through the 'De Aspectibus'."
     },
     {
-      "title": "MacTutor History of Mathematics Archive: Alhazen biography",
-      "institution_or_author": "University of St Andrews",
+      "title": "Biographical Encyclopedia of Astronomers: Ibn al-Haytham",
+      "institution_or_author": "Springer / Thomas Hockey et al.",
       "authority_level": "A",
-      "supported_claim": "Biographical timeline details and mathematical breakdown of Alhazen's Problem."
+      "supported_claim": "Confirms biographical parameters, timeline in Cairo, and critiques of Ptolemaic astronomy in Shukūk."
     }
   ]
 }

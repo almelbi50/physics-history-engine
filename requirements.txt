@@ -1,0 +1,18 @@
+# Core Dependencies for physics-history-engine
+# آثر الآمان والاستقرار، جميع الإصدارات مثبتة (pinned)
+
+# API & HTTP
+requests>=2.31.0        # HTTP library for WordPress API
+google-genai>=0.4.0     # Google Gemini API client
+
+# Environment Management
+python-dotenv>=1.0.0    # Load environment variables from .env (development only)
+
+# Optional: Security & Code Quality (development only)
+# flake8>=6.1.0           # Code linting
+# black>=23.12.0          # Code formatter
+# bandit>=1.7.5           # Security audit
+# pytest>=7.4.3           # Testing framework
+
+# Python Version: 3.9+
+# Tested with Python 3.9, 3.10, 3.11, 3.12

@@ -1,19 +1,19 @@
 {
   "entity_resolution": {
-    "canonical_name": "Abū ʿAlī al-Ḥasan ibn al-Ḥasan ibn al-Haytham",
-    "arabic_name": "أبو علي الحسن بن الحسن بن الهيثم",
+    "canonical_name": "Hasan Ibn al-Haytham",
+    "arabic_name": "أبو علي، الحسن بن الحسن بن الهيثم",
     "english_name": "Ibn al-Haytham",
     "alternative_names": [
       "Alhazen",
-      "Alhazenus",
+      "Alhazeni",
       "Avennathan",
       "Avenetan",
       "Al-Basri"
     ],
     "birth_date": "0965-07-01",
     "death_date": "1040-03-06",
-    "birth_place": "Basra, Buwayhid Emirate (Modern Iraq)",
-    "nationality_context": "Islamic Golden Age / Arab Scholar"
+    "birth_place": "Basra, Buwayhid Emirate",
+    "nationality_context": "Islamic Golden Age (Abbasid / Fatimid Eras)"
   },
   "importance_evaluation": {
     "score": 98,
@@ -23,19 +23,15 @@
     "timeline_a_biological": [
       {
         "year": 965,
-        "event": "Born in Basra, during the Buwayhid dynasty."
+        "event": "Born in Basra, present-day Iraq."
       },
       {
         "year": 1011,
-        "event": "Summoned to Cairo by Fatimid Caliph al-Hakim bi-Amr Allah to regulate the flooding of the Nile."
-      },
-      {
-        "year": 1011,
-        "event": "Feigned madness to escape execution after realizing the Nile dam project was unfeasible; placed under house arrest."
+        "event": "Feigned madness to avoid punishment by Fatimid Caliph Al-Hakim after assessing Nile damming as unfeasible; placed under house arrest in Cairo."
       },
       {
         "year": 1021,
-        "event": "Released from house arrest following Caliph al-Hakim's death; spent remaining years near the Al-Azhar Mosque writing and translating."
+        "event": "Released from house arrest following the death of Caliph Al-Hakim; established residence near the Al-Azhar Mosque."
       },
       {
         "year": 1040,
@@ -45,98 +41,76 @@
     "timeline_b_scientific": [
       {
         "year": 1011,
-        "event_type": "Experimental Physics & Optics",
-        "description": "Began drafting Kitāb al-Manāẓir (Book of Optics) while under house arrest, establishing experimental optics."
+        "event_type": "Experimental Discovery",
+        "description": "Began systematic experiments on camera obscura and light propagation while confined under house arrest."
       },
       {
         "year": 1021,
-        "event_type": "Publication / Treatise Completion",
-        "description": "Completed Kitāb al-Manāẓir, detailing the intromission theory of vision, laws of reflection, and early camera obscura observations."
+        "event_type": "Publication",
+        "description": "Completed Kitab al-Manazir (Book of Optics), revolutionizing the study of light, refraction, reflection, and human vision."
       },
       {
         "year": 1028,
-        "event_type": "Mathematical Astronomy",
-        "description": "Authored 'Al-Shukūk 'alā Baṭlamyūs' (Doubts Concerning Ptolemy), critiquing Ptolemaic planetary models on physical grounds."
+        "event_type": "Publication",
+        "description": "Authored Al-Shukuk 'ala Batlamyus (Doubts Concerning Ptolemy), critiquing Ptolemaic planetary models on physical and logical grounds."
       },
       {
         "year": 1030,
-        "event_type": "Catoptrics & Geometry",
-        "description": "Formulated Alhazen's Problem regarding reflection from spherical surfaces in 'On Burning Mirrors'."
+        "event_type": "Mathematical Formulation",
+        "description": "Posed and solved Alhazen's Problem regarding geometric reflections from spherical mirrors using conic sections."
       }
     ]
   },
   "physics_analysis": [
     {
-      "contribution_name": "Intromission Theory of Vision and Camera Obscura Kinematics",
-      "scientific_problem": "Resolving the dispute between emission theory (Euclid, Ptolemy) and intromission theory (Aristotle, Epicurus) regarding how human vision functions.",
-      "hypothesis": "Light rays travel rectilinearly in all directions from every point on an illuminated object and physically enter the eye to form an image.",
-      "model_or_framework": "Ray optics framework integrated with anatomical ocular geometry and dark-chamber (camera obscura) pinhole projections.",
-      "experiment_details": "Constructed controlled dark chambers with small apertures to measure light projection from multiple candles onto opposite walls, proving non-interfering rectilinear propagation of light.",
+      "contribution_name": "Intromission Theory of Vision and Camera Obscura Optics",
+      "scientific_problem": "Resolving conflict between emission theory (light rays exit the eye) and classic intromission theory, while establishing rectilinear propagation of light.",
+      "hypothesis": "Vision occurs when light rays emitted or reflected from physical objects enter the eye in straight lines, forming a point-to-point representation.",
+      "model_or_framework": "Experimental geometric optics utilizing dark chambers (camera obscura) and mechanical aperture control.",
+      "experiment_details": "Constructed controlled dark chambers with variable apertures to observe light rays passing through small openings, proving that rays travel in straight lines and do not mix at the aperture point.",
       "equations": [
         {
           "latex_raw": "\\frac{h_i}{h_o} = \\frac{d_i}{d_o}",
           "variables_definition": {
-            "h_i": "Image height projected on the internal screen",
-            "h_o": "Object height outside the aperture",
-            "d_i": "Distance from aperture to screen",
-            "d_o": "Distance from aperture to object"
+            "h_i": "Height of projected image",
+            "h_o": "Height of light source or object",
+            "d_i": "Distance from aperture to image screen",
+            "d_o": "Distance from object to aperture"
           },
-          "validity_domain": "Geometric optics approximation where aperture diameter is much smaller than object distance, but large compared to wavelength.",
-          "assumptions": "Light travels in straight lines in isotropic, homogeneous media."
+          "validity_domain": "Geometric optics with pinhole aperture",
+          "assumptions": "Aperture diameter is small relative to focal distances; light travels strictly in straight lines without significant wave diffraction."
         }
       ],
-      "result_and_impact": "Disproved emission theory; established mathematical basis for modern ocular physiology, optical instrumentation, and image projection.",
-      "limitations_and_boundary_conditions": "Did not account for wave diffraction effects when the pinhole becomes extremely small."
+      "result_and_impact": "Disproved the ancient visual ray emission hypothesis; introduced controlled empirical experimentation and physical verification into optics.",
+      "limitations_and_boundary_conditions": "Did not account for light diffraction or chromatic dispersion effects."
     },
     {
-      "contribution_name": "Alhazen's Problem (Spherical Reflection)",
-      "scientific_problem": "Determining the exact point on a spherical mirror where a ray from a fixed point light source reflects to reach a stationary observer's eye.",
-      "hypothesis": "The point of reflection can be geometrically solved by intersecting a specific hyperbola with the circular cross-section of the mirror.",
-      "model_or_framework": "Geometric catoptrics utilizing conic sections (hyperbolas and circles).",
-      "experiment_details": "Constructed precise metallic spherical mirrors and graduated visual devices to verify reflection angles.",
+      "contribution_name": "Mathematical Catoptrics and Alhazen's Reflection Problem",
+      "scientific_problem": "Finding the point on a spherical, cylindrical, or parabolic mirror at which a ray from a fixed light source reflects to a fixed observer.",
+      "hypothesis": "Reflection obeys the equal angle law with respect to the normal vector at the point of incidence, within a single plane of incidence.",
+      "model_or_framework": "Geometric catoptrics combining circle geometry and conic section intersections.",
+      "experiment_details": "Utilized custom graduated iron instruments, tubes, and polished curved mirrors (spherical, cylindrical, parabolic) to measure angles of incidence and reflection empirically.",
       "equations": [
         {
           "latex_raw": "\\theta_i = \\theta_r",
           "variables_definition": {
-            "\\theta_i": "Angle of incidence measured relative to the surface normal vector at the reflection point",
-            "\\theta_r": "Angle of reflection measured relative to the surface normal vector at the reflection point"
+            "\\theta_i": "Angle between incident ray and surface normal",
+            "\\theta_r": "Angle between reflected ray and surface normal"
           },
-          "validity_domain": "Specular reflection on smooth curved conducting surfaces.",
-          "assumptions": "Mirror surface is perfectly spherical and local reflection obeys planar catoptrics relative to the tangent plane."
+          "validity_domain": "Specular reflection on smooth curved or flat surfaces",
+          "assumptions": "Surface is macroscopically smooth and polished; media boundary is isotropic."
         }
       ],
-      "result_and_impact": "Led to a fourth-degree polynomial solution that challenged geometry for centuries, influencing Huygens, Barrow, and Newton.",
-      "limitations_and_boundary_conditions": "Analytical solution required methods equivalent to modern algebraic geometry or calculus unavailable in the 11th century."
-    },
-    {
-      "contribution_name": "Empirical Law of Optical Refraction Analysis",
-      "scientific_problem": "Quantifying the angle of refraction when light passes across interfaces between media of different optical densities.",
-      "hypothesis": "The angle of refraction is systematically related to the angle of incidence, decreasing when moving into a denser medium, with refraction occurring within the plane of incidence.",
-      "model_or_framework": "Experimental catoptrics and dioptrics using graduated vessels and glass/water interfaces.",
-      "experiment_details": "Designed a custom cylindrical metal vessel with angular graduations to systematically measure angles of incidence and refraction in air, glass, and water.",
-      "equations": [
-        {
-          "latex_raw": "\\frac{\\sin \\theta_1}{\\sin \\theta_2} = C",
-          "variables_definition": {
-            "\\theta_1": "Angle of incidence in Medium 1",
-            "\\theta_2": "Angle of refraction in Medium 2",
-            "C": "Constant index relative to media pair (early form of Snell's Law ratio)"
-          },
-          "validity_domain": "Isotropic dielectric non-dispersive media.",
-          "assumptions": "Light travels slower in optically denser media."
-        }
-      ],
-      "result_and_impact": "Provided the most extensive set of empirical refractive data prior to Snell and Descartes; identified that perpendicular rays pass unrefracted.",
-      "limitations_and_boundary_conditions": "Approximate geometric formulations were used rather than exact trigonometric sine ratios for small angles."
+      "result_and_impact": "Solved a fourth-degree polynomial geometry problem using conic sections; provided foundational principles used centuries later by Kepler, Huygens, and Snell.",
+      "limitations_and_boundary_conditions": "Applies strictly to specular mirrors; geometric construction requires Euclidean/conic solution methods."
     }
   ],
   "knowledge_graph_relations": {
     "teachers": [
-      "Ibn Sahl"
+      "Ibn Sahl (intellectual influence in refraction geometry)"
     ],
     "students": [
-      "Sūrābādī",
-      "Abu al-Wafa al-Mubashshir ibn Fatik"
+      "Mubashir ibn Fatiq"
     ],
     "collaborators": [],
     "precursors_built_upon": [
@@ -144,11 +118,10 @@
       "Ptolemy",
       "Aristotle",
       "Galen",
-      "Banū Mūsā",
+      "Al-Kindi",
       "Ibn Sahl"
     ],
     "influenced_scientists": [
-      "Kamāl al-Dīn al-Fārisī",
       "Roger Bacon",
       "Witelo",
       "Biagio Pelacani da Parma",
@@ -159,22 +132,22 @@
   },
   "verified_sources": [
     {
-      "title": "The Optics of Ibn al-Haytham: Books I-III: On Direct Vision",
-      "institution_or_author": "A. I. Sabra (Warburg Institute, University of London)",
+      "title": "The Optics of Ibn al-Haytham: Books I-III",
+      "institution_or_author": "Abdelhamid I. Sabra (Warburg Institute Press)",
       "authority_level": "A",
-      "supported_claim": "Detailed translation and analysis confirming Ibn al-Haytham's experimental methods, intromission theory, and camera obscura proofs."
+      "supported_claim": "Critical English translation and historical commentary on Ibn al-Haytham's experimental optics and intromission theory."
     },
     {
-      "title": "Ibn al-Haytham's Theory of Visual Perception",
-      "institution_or_author": "Mark Smith (American Philosophical Society)",
+      "title": "Alhacen's Theory of Visual Perception",
+      "institution_or_author": "A. Mark Smith (American Philosophical Society)",
       "authority_level": "A",
-      "supported_claim": "Establishes Alhazen's solution to spherical reflection and the transmission of optics into Latin Europe through the 'De Aspectibus'."
+      "supported_claim": "Detailed analysis of the Latin translation of Kitab al-Manazir and its impact on Western medieval and early modern optics."
     },
     {
-      "title": "Biographical Encyclopedia of Astronomers: Ibn al-Haytham",
-      "institution_or_author": "Springer / Thomas Hockey et al.",
+      "title": "Ibn al-Haytham's Geometrical Methods and Conic Sections",
+      "institution_or_author": "Roshdi Rashed (Springer Scientific Publications)",
       "authority_level": "A",
-      "supported_claim": "Confirms biographical parameters, timeline in Cairo, and critiques of Ptolemaic astronomy in Shukūk."
+      "supported_claim": "Historical reconstruction of Alhazen's Problem and mathematical contributions to catoptrics and conic sections."
     }
   ]
 }

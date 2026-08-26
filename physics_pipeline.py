@@ -16,10 +16,6 @@ WP_PASSWORD = os.getenv("WP_PASSWORD")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 def clean_and_parse_json(text):
-    """
-    Cleans and parses raw output from Gemini API, ensuring unescaped backslashes
-    in LaTeX formulations do not break JSON syntax parsing.
-    """
     cleaned = re.sub(r'^```json\s*', '', text.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r'^```\s*', '', cleaned, flags=re.MULTILINE)
     cleaned = cleaned.strip()
@@ -27,7 +23,6 @@ def clean_and_parse_json(text):
     try:
         return json.loads(cleaned, strict=False)
     except json.JSONDecodeError:
-        # Safely escape backslashes for JSON parsing while retaining LaTeX syntax integrity
         fixed_text = re.sub(r'\\(?![/"bfnrtu]|u[0-9a-fA-F]{4})', r'\\\\', cleaned)
         return json.loads(fixed_text, strict=False)
 
@@ -36,8 +31,8 @@ STAGE_1_PROMPT = """
 You are a specialized Physics Historian and Fact-Extraction Engine for phy-lab.com.
 Target Scientist: {scientist_name}
 
-Perform deep identity verification, timeline analysis, and physics modeling check using authoritative sources (AIP History Network, APS, Nobel Prize archives).
-Return ONLY a valid JSON matching this schema without markdown code blocks or additional text:
+Perform deep identity verification, timeline analysis, and physics modeling check using authoritative sources.
+Return ONLY a valid JSON matching this schema:
 
 {{
   "entity_resolution": {{
@@ -95,7 +90,7 @@ Return ONLY a valid JSON matching this schema without markdown code blocks or ad
 }}
 """
 
-# 3. Stage 2 Prompt Schema Definition (Strictly tailored for MathJax-LaTeX WordPress Plugin)
+# 3. Stage 2 Prompt Schema Definition (Strict Scientist Name Title & MathJax Rules)
 STAGE_2_PROMPT = """
 You are an Academic Physics Editor writing for phy-lab.com.
 Based ONLY on the verified JSON structured data provided below for {scientist_name}, synthesize a publication-ready HTML article for WordPress.
@@ -103,19 +98,18 @@ Based ONLY on the verified JSON structured data provided below for {scientist_na
 JSON Data:
 {stage1_json}
 
-Strict Formatting & WordPress MathJax Rules:
-1. Always start `html_content` with the shortcode `[mathjax]` on the first line to activate the MathJax rendering library on WordPress.
-2. ALL block equations MUST be wrapped in WordPress MathJax shortcodes: [latex]equation_code[/latex] (e.g., [latex]\\sin(\\theta_i) = k \\sin(\\theta_r)[/latex]). Do NOT use bracket notations like \\[ \\] or dollar signs for block equations.
-3. ALL inline LaTeX equations or mathematical variables inside text sentences MUST be wrapped in shortcodes or dollar syntax: [latex]var_name[/latex] or $\\theta_i$.
-4. Do NOT use <blockquote> tags under any circumstances! Format verified sources and citations using structured HTML lists (<ol> or <ul>) or styled HTML tables (<table>) to prevent theme style conflicts.
-5. Use clear hierarchical headings (<h2>, <h3>) and semantic HTML (<p>, <ul>, <li>, <table>, <strong>).
-6. Tone must be strictly objective, formal academic tone without conversational fluff or hyperbolic statements.
-7. Output in rich, academic Arabic language structured for university physics students and laboratory staff.
+Strict Rules:
+1. "post_title" MUST BE EXACTLY THE SCIENTIST'S NAME ONLY in Arabic (e.g. "ابن الهيثم" or "ألبيرت أينشتاين"). Do NOT add descriptive prefixes or suffixes.
+2. Start `html_content` with the shortcode `[mathjax]` on the very first line.
+3. ALL block equations MUST use [latex]equation[/latex].
+4. ALL inline variables MUST use [latex]var[/latex] or $var$.
+5. Do NOT use <blockquote> tags under any circumstances. Use HTML tables or ordered lists for references.
+6. Tone must be strictly objective, formal academic prose suitable for university physics education.
 
-Return JSON containing the rendered HTML article and SEO Metadata in this exact structure:
+Return JSON in this exact structure:
 
 {{
-  "post_title": "",
+  "post_title": "{scientist_name}",
   "html_content": "",
   "seo": {{
     "meta_description": "",
@@ -129,6 +123,20 @@ Return JSON containing the rendered HTML article and SEO Metadata in this exact 
   }}
 }}
 """
+
+def get_category_id_by_slug(slug="physicists"):
+    """Fetches the WordPress category ID for the given slug."""
+    endpoint = f"{WP_URL.rstrip('/')}/categories?slug={slug}"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        res = requests.get(endpoint, auth=(WP_USER, WP_PASSWORD), headers=headers, timeout=15)
+        if res.status_code == 200:
+            cats = res.json()
+            if cats:
+                return cats[0]["id"]
+    except Exception as e:
+        print(f"[Warning] Failed to fetch category ID for '{slug}': {e}")
+    return None
 
 def run_stage_1(scientist_name):
     print(f"[Stage 1] Extracting structured facts for: {scientist_name}...")
@@ -154,20 +162,25 @@ def run_stage_2(scientist_name, stage1_json):
     )
     return clean_and_parse_json(response.text)
 
-def post_to_wordpress(article_data, max_retries=3):
+def post_to_wordpress(article_data, scientist_name, max_retries=3):
     print("[WordPress API] Uploading draft to phy-lab.com...")
     endpoint = f"{WP_URL.rstrip('/')}/posts"
     
+    # Retrieve Category ID for 'physicists'
+    cat_id = get_category_id_by_slug("physicists")
+    categories = [cat_id] if cat_id else []
+
     payload = {
-        "title": article_data["post_title"],
+        "title": scientist_name,  # Force title to be strictly scientist name
         "content": article_data["html_content"],
         "status": "draft",
         "slug": article_data["seo"]["slug"],
-        "excerpt": article_data["seo"]["meta_description"]
+        "excerpt": article_data["seo"]["meta_description"],
+        "categories": categories
     }
     
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     
     for attempt in range(1, max_retries + 1):
@@ -185,6 +198,7 @@ def post_to_wordpress(article_data, max_retries=3):
                 res_json = response.json()
                 print("--------------------------------------------------")
                 print(f" SUCCESS! Draft Created with ID: {res_json.get('id')}")
+                print(f" Category ID Assigned: {categories}")
                 print(f" Direct Edit URL: https://phy-lab.com/wp-admin/post.php?post={res_json.get('id')}&action=edit")
                 print("--------------------------------------------------")
                 return True
@@ -228,7 +242,6 @@ def process_next_scientist():
     # Stage 2 execution
     article_data = run_stage_2(scientist_name, stage1_json_str)
 
-    # Quality Gate evaluation
     qa = article_data.get("qa_evaluation", {})
     quality_score = qa.get("quality_score", 0)
     critical_errors = qa.get("critical_errors", [])
@@ -236,7 +249,7 @@ def process_next_scientist():
     print(f"[QA Evaluation] Score: {quality_score} | Errors: {critical_errors}")
 
     if quality_score >= 90 and len(critical_errors) == 0:
-        success = post_to_wordpress(article_data)
+        success = post_to_wordpress(article_data, scientist_name)
         if success:
             target["status"] = "completed"
             with open("scientists.json", "w", encoding="utf-8") as f:

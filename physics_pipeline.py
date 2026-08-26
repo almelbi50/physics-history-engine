@@ -90,7 +90,7 @@ Return ONLY a valid JSON matching this schema:
 }}
 """
 
-# 3. Stage 2 Prompt Schema Definition (Strict Arabic & MathJax Rules)
+# 3. Stage 2 Prompt Schema Definition (Strict Arabic, MathJax, & Mandatory AI Disclaimer Footer)
 STAGE_2_PROMPT = """
 You are an Academic Physics Editor writing for phy-lab.com.
 Based ONLY on the verified JSON structured data provided below for {scientist_name}, synthesize a publication-ready HTML article for WordPress.
@@ -99,13 +99,18 @@ JSON Data:
 {stage1_json}
 
 Strict Rules:
-1. LANGUAGE REQUIREMENT: Entire article (`post_title`, `html_content`, and `meta_description`) MUST be written strictly in professional, formal ACADEMIC ARABIC (اللغة العربية الأكاديمية). Do NOT write the article in English.
+1. LANGUAGE REQUIREMENT: Entire article (`post_title`, `html_content`, and `meta_description`) MUST be written strictly in professional, formal ACADEMIC ARABIC (اللغة العربية الأكاديمية).
 2. `post_title` MUST BE strictly the scientist's translated name in Arabic ONLY (e.g. "إسحاق نيوتن", "ابن الهيثم", "ألبيرت أينشتاين"). Do NOT append any extra words.
 3. Start `html_content` with the shortcode `[mathjax]` on the very first line.
 4. ALL block equations MUST use [latex]equation[/latex].
 5. ALL inline variables MUST use [latex]var[/latex] or $var$.
 6. Do NOT use <blockquote> tags under any circumstances. Use HTML tables or ordered lists for references.
 7. Tone must be strictly objective, formal academic prose suitable for university physics laboratories.
+8. MANDATORY AI DISCLAIMER FOOTER: At the very end of `html_content`, you MUST append the following exact HTML notice box verbatim:
+   <hr />
+   <div style="background-color: #f8f9fa; border-right: 4px solid #0073aa; padding: 12px 16px; margin-top: 25px; font-size: 0.9em; color: #555; line-height: 1.6;">
+     <strong>تنويه:</strong> أُعدّ هذا المقال آليًا بواسطة وكيل ذكاء اصطناعي وفق معايير محددة للبحث والتحقق والصياغة العلمية، مع الاستناد إلى مصادر موثوقة. ويُنصح بالرجوع إلى المراجع المرفقة للتحقق من التفاصيل والمعلومات الواردة في المقال.
+   </div>
 
 Return JSON in this exact structure:
 
@@ -172,7 +177,7 @@ def post_to_wordpress(article_data, max_retries=3):
     categories = [cat_id] if cat_id else []
 
     payload = {
-        "title": article_data["post_title"],  # Evaluated Arabic Name Title
+        "title": article_data["post_title"],
         "content": article_data["html_content"],
         "status": "draft",
         "slug": article_data["seo"]["slug"],

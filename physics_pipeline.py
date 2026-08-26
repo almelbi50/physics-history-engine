@@ -90,7 +90,7 @@ Return ONLY a valid JSON matching this schema:
 }}
 """
 
-# 3. Stage 2 Prompt Schema Definition (Strict Scientist Name Title & MathJax Rules)
+# 3. Stage 2 Prompt Schema Definition (Strict Arabic & MathJax Rules)
 STAGE_2_PROMPT = """
 You are an Academic Physics Editor writing for phy-lab.com.
 Based ONLY on the verified JSON structured data provided below for {scientist_name}, synthesize a publication-ready HTML article for WordPress.
@@ -99,17 +99,18 @@ JSON Data:
 {stage1_json}
 
 Strict Rules:
-1. "post_title" MUST BE EXACTLY THE SCIENTIST'S NAME ONLY in Arabic (e.g. "ابن الهيثم" or "ألبيرت أينشتاين"). Do NOT add descriptive prefixes or suffixes.
-2. Start `html_content` with the shortcode `[mathjax]` on the very first line.
-3. ALL block equations MUST use [latex]equation[/latex].
-4. ALL inline variables MUST use [latex]var[/latex] or $var$.
-5. Do NOT use <blockquote> tags under any circumstances. Use HTML tables or ordered lists for references.
-6. Tone must be strictly objective, formal academic prose suitable for university physics education.
+1. LANGUAGE REQUIREMENT: Entire article (`post_title`, `html_content`, and `meta_description`) MUST be written strictly in professional, formal ACADEMIC ARABIC (اللغة العربية الأكاديمية). Do NOT write the article in English.
+2. `post_title` MUST BE strictly the scientist's translated name in Arabic ONLY (e.g. "إسحاق نيوتن", "ابن الهيثم", "ألبيرت أينشتاين"). Do NOT append any extra words.
+3. Start `html_content` with the shortcode `[mathjax]` on the very first line.
+4. ALL block equations MUST use [latex]equation[/latex].
+5. ALL inline variables MUST use [latex]var[/latex] or $var$.
+6. Do NOT use <blockquote> tags under any circumstances. Use HTML tables or ordered lists for references.
+7. Tone must be strictly objective, formal academic prose suitable for university physics laboratories.
 
 Return JSON in this exact structure:
 
 {{
-  "post_title": "{scientist_name}",
+  "post_title": "",
   "html_content": "",
   "seo": {{
     "meta_description": "",
@@ -162,7 +163,7 @@ def run_stage_2(scientist_name, stage1_json):
     )
     return clean_and_parse_json(response.text)
 
-def post_to_wordpress(article_data, scientist_name, max_retries=3):
+def post_to_wordpress(article_data, max_retries=3):
     print("[WordPress API] Uploading draft to phy-lab.com...")
     endpoint = f"{WP_URL.rstrip('/')}/posts"
     
@@ -171,7 +172,7 @@ def post_to_wordpress(article_data, scientist_name, max_retries=3):
     categories = [cat_id] if cat_id else []
 
     payload = {
-        "title": scientist_name,  # Force title to be strictly scientist name
+        "title": article_data["post_title"],  # Evaluated Arabic Name Title
         "content": article_data["html_content"],
         "status": "draft",
         "slug": article_data["seo"]["slug"],
@@ -199,6 +200,7 @@ def post_to_wordpress(article_data, scientist_name, max_retries=3):
                 print("--------------------------------------------------")
                 print(f" SUCCESS! Draft Created with ID: {res_json.get('id')}")
                 print(f" Category ID Assigned: {categories}")
+                print(f" Title Assigned: {article_data['post_title']}")
                 print(f" Direct Edit URL: https://phy-lab.com/wp-admin/post.php?post={res_json.get('id')}&action=edit")
                 print("--------------------------------------------------")
                 return True
@@ -249,7 +251,7 @@ def process_next_scientist():
     print(f"[QA Evaluation] Score: {quality_score} | Errors: {critical_errors}")
 
     if quality_score >= 90 and len(critical_errors) == 0:
-        success = post_to_wordpress(article_data, scientist_name)
+        success = post_to_wordpress(article_data)
         if success:
             target["status"] = "completed"
             with open("scientists.json", "w", encoding="utf-8") as f:

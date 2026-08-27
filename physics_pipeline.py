@@ -488,9 +488,9 @@ QUALITY SCORE:
 0–59 = FAIL
 60–74 = MAJOR REVISION
 75–89 = REVISION REQUIRED
-90–100 = PUBLICATION READY
+90–100 = PUBLICATION READY (Note: standard scales 0.0 to 1.0 are acceptable, where 0.90+ = 90+)
 
-A score of 90 or above is allowed ONLY when there are no critical errors.
+A score of 90 (or 0.90) or above is allowed ONLY when there are no critical errors.
 
 Return ONLY valid JSON:
 
@@ -640,24 +640,31 @@ def main():
     # --------------------------------------------------------------------------
     qa = article_data.get("qa_evaluation", {})
 
-    quality_score = qa.get("quality_score", 0)
+    def normalize_score(val):
+        try:
+            val = float(val)
+            return val * 100 if val <= 1.0 else val
+        except (ValueError, TypeError):
+            return 0.0
+
+    quality_score = normalize_score(qa.get("quality_score", 0))
+    historical_accuracy = normalize_score(qa.get("historical_accuracy", 0))
+    scientific_accuracy = normalize_score(qa.get("scientific_accuracy", 0))
+    mathematical_accuracy = normalize_score(qa.get("mathematical_accuracy", 0))
+    source_quality = normalize_score(qa.get("source_quality", 0))
+
     critical_errors = qa.get("critical_errors", [])
     publish_recommendation = qa.get("publish_recommendation", "REJECT")
-
-    historical_accuracy = qa.get("historical_accuracy", 0)
-    scientific_accuracy = qa.get("scientific_accuracy", 0)
-    mathematical_accuracy = qa.get("mathematical_accuracy", 0)
-    source_quality = qa.get("source_quality", 0)
     anachronism_check = qa.get("anachronism_check", "FAIL")
 
     print("\n--------------------------------------------------")
     print(
         f"[QA Evaluation] "
-        f"Overall={quality_score} | "
-        f"Historical={historical_accuracy} | "
-        f"Scientific={scientific_accuracy} | "
-        f"Math={mathematical_accuracy} | "
-        f"Sources={source_quality} | "
+        f"Overall={quality_score:.1f} | "
+        f"Historical={historical_accuracy:.1f} | "
+        f"Scientific={scientific_accuracy:.1f} | "
+        f"Math={mathematical_accuracy:.1f} | "
+        f"Sources={source_quality:.1f} | "
         f"Anachronism={anachronism_check}"
     )
     print("--------------------------------------------------")
@@ -686,11 +693,11 @@ def main():
     else:
         print(
             "\n[QA FAILED] Target article rejected due to threshold failure:\n"
-            f"Overall={quality_score}, "
-            f"Historical={historical_accuracy}, "
-            f"Scientific={scientific_accuracy}, "
-            f"Math={mathematical_accuracy}, "
-            f"Sources={source_quality}, "
+            f"Overall={quality_score:.1f}, "
+            f"Historical={historical_accuracy:.1f}, "
+            f"Scientific={scientific_accuracy:.1f}, "
+            f"Math={mathematical_accuracy:.1f}, "
+            f"Sources={source_quality:.1f}, "
             f"Anachronism={anachronism_check}, "
             f"Critical Errors={critical_errors}"
         )

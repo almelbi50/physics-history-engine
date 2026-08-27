@@ -27,8 +27,8 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Valid model identifier
-model = genai.GenerativeModel("models/gemini-1.5-flash")
+# Correct model identifier string (without 'models/' prefix)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ==============================================================================
 # STAGE 1 PROMPT: FACT EXTRACTION ENGINE
@@ -266,7 +266,7 @@ Include the English scientific term at first occurrence when it improves precisi
 
 2. TITLE
 
-post_title MUST contain only the scientist's Arabic name.
+post_title MUST contain only the scientist\'s Arabic name.
 
 Examples:
 "ابن الهيثم"
@@ -596,7 +596,6 @@ def main():
     with open("scientists.json", "r", encoding="utf-8") as f:
         scientists = json.load(f)
 
-    # Locate next pending target
     target_index = None
     target = None
     for idx, item in enumerate(scientists):
@@ -621,7 +620,6 @@ def main():
     prompt_stage1 = STAGE_1_PROMPT.format(scientist_name=scientist_name)
     stage1_json = generate_content_with_retry(prompt_stage1)
 
-    # Cache Knowledge Base locally
     os.makedirs("knowledge_base", exist_ok=True)
     kb_path = f"knowledge_base/{target['id']}_{scientist_name}.json"
     with open(kb_path, "w", encoding="utf-8") as f:

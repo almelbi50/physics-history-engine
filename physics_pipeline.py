@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+physics_pipeline.py
+===================
 Automated Two-Stage Physics Editorial & Fact-Extraction Pipeline for phy-lab.com.
 Engineered for strict academic accuracy, historical rigor, and MathJax/LaTeX integration.
 """
@@ -23,7 +27,7 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Corrected Model Identifier to fix 404 NotFound error
+# Valid model identifier
 model = genai.GenerativeModel("models/gemini-1.5-flash")
 
 # ==============================================================================
@@ -395,7 +399,7 @@ Build a coherent academic article containing, when applicable:
 - introduction;
 - historical context;
 - scientific problem;
-- scientist's contribution;
+- contribution of the scientist;
 - experimental or mathematical approach;
 - physical interpretation;
 - limitations;

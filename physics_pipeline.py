@@ -27,7 +27,6 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Updated model string to gemini-3.6-flash based on API deprecation notice
 model = genai.GenerativeModel("gemini-3.6-flash")
 
 # ==============================================================================
@@ -495,15 +494,15 @@ A score of 90 or above is allowed ONLY when there are no critical errors.
 
 Return ONLY valid JSON:
 
-{
+{{
   "post_title": "",
   "html_content": "",
-  "seo": {
+  "seo": {{
     "meta_description": "",
     "primary_keyword": "",
     "slug": ""
-  },
-  "qa_evaluation": {
+  }},
+  "qa_evaluation": {{
     "quality_score": 0,
     "critical_errors": [],
     "warnings": [],
@@ -513,8 +512,8 @@ Return ONLY valid JSON:
     "source_quality": 0,
     "anachronism_check": "PASS|WARNING|FAIL",
     "publish_recommendation": "PUBLISH|REVIEW|REJECT"
-  }
-}
+  }}
+}}
 """
 
 # ==============================================================================

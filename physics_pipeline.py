@@ -201,25 +201,15 @@ The entire article (post_title, html_content, meta_description) MUST be written 
 2. TITLE
 post_title MUST contain only the scientist's Arabic name (e.g., "أبو الريحان البيروني"). Do NOT add subtitles.
 
-3. EQUATIONS AND MATHEMATICAL FORMATTING (STRICT RTL & MATHJAX RULES)
-- Do NOT use dollar signs ($ or $$). They cause broken syntax rendering in RTL Arabic text.
-- Do NOT use shortcode tags like [latex], [/latex], [\latex], or [mathjax].
-
-All block/display equations MUST be wrapped strictly in:
-\\[ equation \\]
-
-All inline variables, physical constants, and mathematical symbols MUST be wrapped strictly in:
-\\( var \\)
-
-Example Block Equation:
-\\[ \\text{{S.G.}} = \\frac{{W_{{\\text{{air}}}}}}{{W_{{\\text{{air}}}} - W_{{\\text{{water}}}}}} \\]
-
-Example Inline Usage:
-حيث تمثل \\( W_{{\\text{{air}}}} \\) وزن العينة في الهواء، و \\( W_{{\\text{{water}}}} \\) الوزن الظاهري في الماء.
-
-CRITICAL FOR ESCAPE CHARACTERS & RTL:
-- ALWAYS preserve backslashes (\\) for LaTeX commands such as \\frac, \\text, \\rho, \\theta.
-- ALWAYS insert spaces before and after inline delimiters \\( ... \\) when adjacent to Arabic text.
+3. EQUATIONS AND MATHEMATICAL FORMATTING (CRITICAL)
+- STRICT RULE: Do NOT use shortcode tags like [latex], [/latex], [\latex], or [mathjax].
+- All block/display equations MUST use standard LaTeX display delimiters on a separate line:
+  $$ equation $$
+- All inline variables, physical constants, and mathematical symbols MUST use standard inline LaTeX delimiters:
+  $ var $
+- Example Block: $$ \\text{{S.G.}} = \\frac{{W_{{\\text{{air}}}}}}{{W_{{\\text{{air}}}} - W_{{\\text{{water}}}}}} $$
+- Example Inline: حيث تمثل $W_{{\\text{{air}}}}$ وزن العينة في الهواء.
+- CRITICAL: Always preserve backslashes (\\) for LaTeX commands such as \\frac, \\text, \\rho, \\theta.
 
 4. NO BLOCKQUOTES
 Do NOT use <blockquote> tags under any circumstances. Use headings, paragraphs, tables, or lists instead.
@@ -274,34 +264,10 @@ def generate_content_with_retry(prompt_text, max_retries=3, delay=5):
                 raise e
 
 def clean_html_latex(html_content):
-    """Sanitizes generated HTML, fixes broken MathJax tags, and injects dynamic MathJax 3 renderer."""
-    # 1. إزالة أي وسوم شورت كود قديمة أو متبقية بالخطأ
+    """Sanitizes generated HTML by removing residual or malformed shortcodes."""
+    # Removes any leftover [latex] or [/latex] variants
     cleaned = re.sub(r'\[/?\\?latex\]', '', html_content, flags=re.IGNORECASE)
     cleaned = re.sub(r'\[mathjax\]', '', cleaned, flags=re.IGNORECASE)
-    
-    # 2. تحويل أي صيغ مقلمة بدولار قديمة أُنتجت خطأً إلى صيغ أقواس آمنة
-    cleaned = re.sub(r'\$\$\s*(.*?)\s*\$\$', r'\\[ \1 \\]', cleaned, flags=re.DOTALL)
-    
-    # 3. محرك تصيير MathJax 3 المستقر لتصيير الأقواس تلقائياً في المتصفح
-    mathjax_script = """
-<!-- MathJax 3 Dynamic Rendering Engine -->
-<script>
-  window.MathJax = {
-    tex: {
-      inlineMath: [['\\\\(', '\\\\)']],
-      displayMath: [['\\\\[', '\\\\]']]
-    },
-    svg: { fontCache: 'global' }
-  };
-</script>
-<script type="text/javascript" id="mathjax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
-"""
-    # 4. حقن السكربت قبل التنويه النهائي أو في آخر المقال
-    if "mathjax-script" not in cleaned:
-        cleaned += "\n" + mathjax_script
-
     return cleaned
 
 def get_wordpress_category_id(category_slug="physicists"):

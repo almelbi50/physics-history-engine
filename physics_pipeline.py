@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import time
+import re
 import requests
 import google.generativeai as genai
 
@@ -17,7 +18,7 @@ import google.generativeai as genai
 # CONFIGURATION & ENVIRONMENT SETUP
 # ==============================================================================
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-WP_URL = os.getenv("WP_URL", "https://phy-lab.com/wp-json/wp/v2")
+WP_URL = os.getenv("WP_URL") or "https://phy-lab.com/wp-json/wp/v2"
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
@@ -44,7 +45,6 @@ This is NOT a creative biography generation task.
 Accuracy has priority over completeness, rhetorical impact, or impressive claims.
 
 You MUST distinguish between:
-
 1. Historically established facts.
 2. Strong scholarly interpretations.
 3. Historically disputed claims.
@@ -55,28 +55,7 @@ Do NOT invent dates, discoveries, equations, experiments, titles, relationships,
 If an exact date is uncertain, DO NOT fabricate an exact YYYY-MM-DD date.
 Use null for uncertain exact dates and explain the uncertainty in the relevant evidence field.
 
-Do NOT automatically describe a scientist as:
-- founder
-- inventor
-- first
-- father of
-- creator of the scientific method
-- discoverer of a law
-- pioneer
-
-unless the attribution is sufficiently supported.
-
-For every major scientific contribution, distinguish:
-- what the scientist actually proposed, observed, demonstrated, or wrote;
-- later historical interpretation;
-- modern scientific interpretation.
-
-For equations and mathematical models:
-- verify mathematical consistency;
-- define variables;
-- identify assumptions;
-- identify validity domain;
-- do not attribute modern reformulations to historical scientists unless justified.
+Do NOT automatically describe a scientist as: founder, inventor, first, father of, creator of the scientific method, discoverer of a law, pioneer, unless the attribution is sufficiently supported.
 
 Return ONLY valid JSON matching this schema:
 
@@ -197,24 +176,6 @@ Return ONLY valid JSON matching this schema:
     "ready_for_article_generation": true
   }}
 }}
-
-SOURCE QUALITY:
-
-Prefer:
-1. Primary historical works and critical editions.
-2. Peer-reviewed academic publications.
-3. Scholarly books by recognized historians of science.
-4. University and research institutions.
-5. Established academic encyclopedias.
-6. General references only when necessary.
-
-Do NOT treat a general website, blog, AI-generated summary, or Wikipedia as sufficient evidence for an important claim.
-
-CRITICAL RULE:
-
-If evidence is uncertain, preserve the uncertainty in the JSON.
-
-Never convert uncertainty into false precision.
 """
 
 # ==============================================================================
@@ -230,270 +191,37 @@ Generate a publication-ready WordPress HTML article using ONLY the structured kn
 JSON Data:
 {stage1_json}
 
-The JSON is the authoritative working dataset for this article.
-
-IMPORTANT:
-Do NOT introduce new factual claims that are not supported by the JSON.
-
-The article must preserve uncertainty where the structured data identifies uncertainty.
-
-Do NOT transform:
-- approximate dates into exact dates;
-- disputed claims into established facts;
-- modern interpretations into historical claims;
-- modern mathematical reformulations into historical equations;
-- weak evidence into confident statements.
-
 --------------------------------------------------
 SCIENTIFIC AND HISTORICAL WRITING RULES
 --------------------------------------------------
 
 1. LANGUAGE
-
-The entire article:
-- post_title
-- html_content
-- meta_description
-
-MUST be written in professional, formal academic Arabic.
-
-Use established Arabic scientific terminology.
-
-Include the English scientific term at first occurrence when it improves precision.
-
---------------------------------------------------
+The entire article (post_title, html_content, meta_description) MUST be written in professional, formal academic Arabic. Use established Arabic scientific terminology, including English scientific terms at first occurrence.
 
 2. TITLE
-
-post_title MUST contain only the scientist's Arabic name.
-
-Examples:
-"ابن الهيثم"
-"إسحاق نيوتن"
-"ألبرت أينشتاين"
-
-Do NOT add a subtitle to post_title.
-
---------------------------------------------------
-
-3. HISTORICAL PRECISION
-
-Do not present uncertain historical information as certain.
-
-If the JSON marks information as approximate, disputed, or uncertain, preserve that qualification.
-
-Prefer:
-
-"نحو..."
-"خلال هذه الفترة..."
-"يُرجح..."
-"تشير المصادر..."
-"يُعد من أبرز..."
-"أسهم في..."
-
-Avoid unsupported absolute statements such as:
-
-"كان أول من..."
-"أسس المنهج العلمي..."
-"اخترع..."
-"اكتشف..."
-"وضع الأساس الكامل لـ..."
-
-unless explicitly supported by the verified dataset.
-
---------------------------------------------------
-
-4. HISTORICAL SCIENCE VS MODERN SCIENCE
-
-When describing historical scientific ideas:
-
-FIRST explain the historical concept.
-
-THEN explain the modern scientific interpretation.
-
-Use explicit distinctions such as:
-
-"وفق التصور العلمي لدى العالم..."
-"في سياقه التاريخي..."
-"أما في الفيزياء الحديثة..."
-
-Never silently replace historical terminology with modern terminology.
-
---------------------------------------------------
-
-5. PHYSICS ACCURACY
-
-All physics explanations must respect:
-
-- assumptions;
-- validity domains;
-- approximations;
-- boundary conditions;
-- dimensional consistency;
-- mathematical consistency.
-
-Avoid unrestricted statements when a physical law applies only under specific conditions.
-
---------------------------------------------------
-
-6. EQUATIONS
-
-Start html_content with:
-
-[mathjax]
-
-All block equations MUST use:
-
-[latex]equation[/latex]
-
-All inline variables MUST use:
-
-[latex]var[/latex]
-
-or $var$.
-
-For every equation:
-- define variables;
-- explain physical meaning;
-- state assumptions where necessary;
-- state validity domain where relevant.
-
-If an equation is a modern reformulation, explicitly identify it as such.
-
---------------------------------------------------
-
-7. HISTORICAL ATTRIBUTION
-
-Do not attribute a modern formulation, terminology, equation, or theory directly to the historical scientist unless the JSON explicitly supports the attribution.
-
-Use formulations such as:
-
-"يمكن إعادة صياغة هذه الفكرة في الإطار الرياضي الحديث..."
-
-instead of implying:
-
-"صاغ العالم هذه المعادلة..."
-
-when the equation is a modern reconstruction.
-
---------------------------------------------------
-
-8. NO BLOCKQUOTES
-
-Do NOT use <blockquote> under any circumstances.
-
-Use:
-- headings;
-- paragraphs;
-- tables;
-- ordered lists;
-- unordered lists.
-
---------------------------------------------------
-
-9. ARTICLE STRUCTURE
-
-Build a coherent academic article containing, when applicable:
-
-- introduction;
-- historical context;
-- scientific problem;
-- contribution of the scientist;
-- experimental or mathematical approach;
-- physical interpretation;
-- limitations;
-- modern interpretation;
-- scientific legacy;
-- connection to physics education where relevant;
-- references.
-
-Do not force sections that are unsupported by the knowledge base.
-
---------------------------------------------------
-
-10. REFERENCES
-
-References must correspond to the sources contained in the JSON.
-
-Do not fabricate bibliographic details.
-
-Do not add references merely to make the article appear academic.
-
---------------------------------------------------
-
-11. SEO
-
-Create:
-
-meta_description:
-- professional Arabic;
-- approximately 140–160 characters where practical;
-- accurately describing the article;
-- no keyword stuffing.
-
-primary_keyword:
-- the most relevant search phrase.
-
-slug:
-- concise English transliteration/keyword slug;
-- lowercase;
-- hyphen-separated;
-- no unnecessary words.
-
---------------------------------------------------
-
-12. MANDATORY FINAL AI DISCLOSURE
-
+post_title MUST contain only the scientist's Arabic name (e.g., "أبو الريحان البيروني"). Do NOT add subtitles.
+
+3. EQUATIONS AND MATHEMATICAL FORMATTING (CRITICAL)
+- STRICT RULE: Do NOT use shortcode tags like [latex], [/latex], [\latex], or [mathjax].
+- All block/display equations MUST use standard LaTeX display delimiters on a separate line:
+  $$ equation $$
+- All inline variables, physical constants, and mathematical symbols MUST use standard inline LaTeX delimiters:
+  $ var $
+- Example Block: $$ \\text{{S.G.}} = \\frac{{W_{{\\text{{air}}}}}}{{W_{{\\text{{air}}}} - W_{{\\text{{water}}}}}} $$
+- Example Inline: حيث تمثل $W_{{\\text{{air}}}}$ وزن العينة في الهواء.
+- CRITICAL: Always preserve backslashes (\\) for LaTeX commands such as \\frac, \\text, \\rho, \\theta.
+
+4. NO BLOCKQUOTES
+Do NOT use <blockquote> tags under any circumstances. Use headings, paragraphs, tables, or lists instead.
+
+5. MANDATORY FINAL AI DISCLOSURE
 At the very end of html_content append EXACTLY:
-
 <hr />
 <div style="background-color: #f8f9fa; border-right: 4px solid #0073aa; padding: 12px 16px; margin-top: 25px; font-size: 0.9em; color: #555; line-height: 1.6;">
 <strong>تنويه:</strong> أُعدّ هذا المقال آليًا بواسطة وكيل ذكاء اصطناعي وفق معايير محددة للبحث والتحقق والصياغة العلمية، مع الاستناد إلى مصادر موثوقة. ويُنصح بالرجوع إلى المراجع المرفقة للتحقق من التفاصيل والمعلومات الواردة في المقال.
 </div>
 
---------------------------------------------------
-FINAL QA
---------------------------------------------------
-
-Before returning the JSON, independently audit the generated article against the supplied knowledge base.
-
-Check:
-
-1. Historical accuracy.
-2. Scientific accuracy.
-3. Mathematical accuracy.
-4. Terminological accuracy.
-5. Historical attribution.
-6. Anachronism.
-7. Unsupported claims.
-8. Dates and chronology.
-9. Citation/source consistency.
-10. SEO quality.
-11. Arabic academic quality.
-
-CRITICAL ERRORS include:
-
-- fabricated historical facts;
-- fabricated dates;
-- unsupported attribution;
-- incorrect equations;
-- incorrect physical laws;
-- historical concepts presented as modern theories;
-- modern theories attributed to historical scientists;
-- references that are not present in the JSON;
-- contradiction with high-confidence information in the JSON.
-
-QUALITY SCORE:
-
-0–59 = FAIL
-60–74 = MAJOR REVISION
-75–89 = REVISION REQUIRED
-90–100 = PUBLICATION READY (Note: standard scales 0.0 to 1.0 are acceptable, where 0.90+ = 90+)
-
-A score of 90 (or 0.90) or above is allowed ONLY when there are no critical errors.
-
 Return ONLY valid JSON:
-
 {{
   "post_title": "",
   "html_content": "",
@@ -535,6 +263,13 @@ def generate_content_with_retry(prompt_text, max_retries=3, delay=5):
             else:
                 raise e
 
+def clean_html_latex(html_content):
+    """Sanitizes generated HTML by removing residual or malformed shortcodes."""
+    # Removes any leftover [latex] or [/latex] variants
+    cleaned = re.sub(r'\[/?\\?latex\]', '', html_content, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\[mathjax\]', '', cleaned, flags=re.IGNORECASE)
+    return cleaned
+
 def get_wordpress_category_id(category_slug="physicists"):
     """Fetches category ID for taxonomy assignment via REST API."""
     if not (WP_USER and WP_PASSWORD):
@@ -556,10 +291,11 @@ def post_to_wordpress(article_data):
 
     endpoint = f"{WP_URL.rstrip('/')}/posts"
     categories = get_wordpress_category_id("physicists")
+    sanitized_content = clean_html_latex(article_data["html_content"])
 
     payload = {
         "title": article_data["post_title"],
-        "content": article_data["html_content"],
+        "content": sanitized_content,
         "status": "draft",
         "slug": article_data["seo"]["slug"],
         "excerpt": article_data["seo"]["meta_description"],
@@ -612,9 +348,7 @@ def main():
     print(f"[Pipeline Start] Processing scientist: {scientist_name}")
     print(f"==================================================")
 
-    # --------------------------------------------------------------------------
-    # STAGE 1: FACT EXTRACTION ENGINE
-    # --------------------------------------------------------------------------
+    # STAGE 1
     print("\n[Stage 1] Executing Fact-Extraction & Physics Modeling Check...")
     prompt_stage1 = STAGE_1_PROMPT.format(scientist_name=scientist_name)
     stage1_json = generate_content_with_retry(prompt_stage1)
@@ -625,9 +359,7 @@ def main():
         json.dump(stage1_json, f, ensure_ascii=False, indent=2)
     print(f"[Stage 1] Structured Knowledge Base saved to '{kb_path}'.")
 
-    # --------------------------------------------------------------------------
-    # STAGE 2: ACADEMIC ARTICLE GENERATION
-    # --------------------------------------------------------------------------
+    # STAGE 2
     print("\n[Stage 2] Synthesizing Academic HTML Article & Quality Audit...")
     prompt_stage2 = STAGE_2_PROMPT.format(
         scientist_name=scientist_name,
@@ -635,12 +367,11 @@ def main():
     )
     article_data = generate_content_with_retry(prompt_stage2)
 
-    # --------------------------------------------------------------------------
-    # MULTI-DIMENSIONAL QUALITY GATE AUDIT
-    # --------------------------------------------------------------------------
+    # QA AUDIT
     qa = article_data.get("qa_evaluation", {})
 
     def normalize_score(val):
+        """Normalizes decimal (0.0-1.0) and percentage (0-100) evaluation scores."""
         try:
             val = float(val)
             return val * 100 if val <= 1.0 else val

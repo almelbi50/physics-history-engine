@@ -27,8 +27,8 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Updated to gemini-2.5-flash as requested by the API logs
-model = genai.GenerativeModel("gemini-2.5-flash")
+# Updated model string to gemini-3.6-flash based on API deprecation notice
+model = genai.GenerativeModel("gemini-3.6-flash")
 
 # ==============================================================================
 # STAGE 1 PROMPT: FACT EXTRACTION ENGINE

@@ -32,7 +32,7 @@ jobs:
       - name: Execute Physics Pipeline Engine
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          WP_URL: ${{ secrets.WP_URL }}
+          WP_URL: "https://phy-lab.com/wp-json/wp/v2"
           WP_USER: ${{ secrets.WP_USER }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
         run: |

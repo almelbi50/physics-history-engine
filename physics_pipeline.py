@@ -27,7 +27,7 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Correct model identifier string (without 'models/' prefix)
+# Updated to gemini-2.5-flash as requested by the API logs
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 # ==============================================================================
@@ -266,7 +266,7 @@ Include the English scientific term at first occurrence when it improves precisi
 
 2. TITLE
 
-post_title MUST contain only the scientist\'s Arabic name.
+post_title MUST contain only the scientist's Arabic name.
 
 Examples:
 "ابن الهيثم"

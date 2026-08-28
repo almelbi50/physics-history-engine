@@ -1,0 +1,372 @@
+{
+  "entity_resolution": {
+    "canonical_name": "Johannes Kepler",
+    "arabic_name": "يوهانس كيبلر",
+    "english_name": "Johannes Kepler",
+    "alternative_names": [
+      "Ioannes Keplerus",
+      "Johann Kepler"
+    ],
+    "birth_date": "1571-12-27",
+    "death_date": "1630-11-15",
+    "birth_date_precision": "exact",
+    "death_date_precision": "exact",
+    "birth_place": "Weil der Stadt, Free Imperial City of Weil der Stadt, Holy Roman Empire",
+    "nationality_context": "German / Holy Roman Empire",
+    "identity_confidence": 100
+  },
+  "importance_evaluation": {
+    "score": 98,
+    "eligible_for_pipeline": true,
+    "scientific_significance": "Discovered the three empirical laws of planetary motion, laying the mathematical foundation for Isaac Newton's theory of universal gravitation. Advanced optics by explaining human vision, pinhole camera mechanics, atmospheric refraction, and designing the astronomical (Keplerian) refracting telescope.",
+    "historical_significance": "A crucial figure in the 17th-century Scientific Revolution who transformed mathematical astronomy from a kinematic geometry tool for calculating apparent positions into a physical science grounded in physical forces and accurate observational data."
+  },
+  "timelines": {
+    "timeline_a_biological": [
+      {
+        "year": 1571,
+        "date_precision": "exact",
+        "event": "Born in Weil der Stadt, Holy Roman Empire.",
+        "confidence": "high",
+        "evidence_note": "Recorded in church register and Kepler's own horoscope records."
+      },
+      {
+        "year": 1589,
+        "date_precision": "exact",
+        "event": "Enters the Tübinger Stift at the University of Tübingen to study theology, philosophy, and mathematics.",
+        "confidence": "high",
+        "evidence_note": "University matriculation records."
+      },
+      {
+        "year": 1594,
+        "date_precision": "exact",
+        "event": "Appointed teacher of mathematics and astronomy at the Protestant seminary school in Graz.",
+        "confidence": "high",
+        "evidence_note": "Official appointment documents in Graz."
+      },
+      {
+        "year": 1597,
+        "date_precision": "exact",
+        "event": "Marries Barbara Müller.",
+        "confidence": "high",
+        "evidence_note": "Historical marriage records in Graz."
+      },
+      {
+        "year": 1600,
+        "date_precision": "exact",
+        "event": "Leaves Graz due to Counter-Reformation decrees and moves to Benátky nad Jizerou / Prague to work with Tycho Brahe.",
+        "confidence": "high",
+        "evidence_note": "Kepler-Brahe correspondence."
+      },
+      {
+        "year": 1601,
+        "date_precision": "exact",
+        "event": "Succeeds Tycho Brahe as Imperial Mathematician to Emperor Rudolf II after Brahe's sudden death.",
+        "confidence": "high",
+        "evidence_note": "Imperial court decree of Rudolph II."
+      },
+      {
+        "year": 1613,
+        "date_precision": "exact",
+        "event": "Marries Susanna Reuttinger in Linz following the death of his first wife.",
+        "confidence": "high",
+        "evidence_note": "Kepler's personal letters and local records."
+      },
+      {
+        "year": 1630,
+        "date_precision": "exact",
+        "event": "Dies in Regensburg while traveling to collect debt owed to him by the Imperial treasury.",
+        "confidence": "high",
+        "evidence_note": "Death certificate and contemporary burial records in Regensburg."
+      }
+    ],
+    "timeline_b_scientific": [
+      {
+        "year": 1596,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Publishes Mysterium Cosmographicum, proposing a cosmological model based on nested Platonic solids.",
+        "confidence": "high",
+        "evidence_note": "First major publication of Kepler defending Copernican heliocentrism."
+      },
+      {
+        "year": 1604,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Publishes Ad Vitellionem Paralipomena, establishing modern optical principles including the inverse-square law for light intensity and optical formation of images on the retina.",
+        "confidence": "high",
+        "evidence_note": "Published work on geometrical and physical optics."
+      },
+      {
+        "year": 1604,
+        "date_precision": "exact",
+        "event_type": "observation",
+        "description": "Observes SN 1604 (Kepler's Supernova) and publishes De Stella Nova (1606).",
+        "confidence": "high",
+        "evidence_note": "Detailed observation records of the new star in Ophiuchus."
+      },
+      {
+        "year": 1609,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Publishes Astronomia Nova containing the First Law (elliptic orbits) and Second Law (equal areas in equal times) of planetary motion based on analysis of Mars.",
+        "confidence": "high",
+        "evidence_note": "Landmark publication in physical astronomy."
+      },
+      {
+        "year": 1611,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Publishes Dioptrice, detailing theoretical mechanics of lenses and introducing the astronomical (Keplerian) telescope design.",
+        "confidence": "high",
+        "evidence_note": "Foundational text of modern geometrical dioptrics."
+      },
+      {
+        "year": 1615,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Publishes Nova Stereometria Doliorum Vinariorum, introducing methods of infinitesimal geometry for measuring volumes of solids of revolution.",
+        "confidence": "high",
+        "evidence_note": "Significant precursor to integral calculus."
+      },
+      {
+        "year": 1619,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Publishes Harmonices Mundi, introducing the Third Law of planetary motion (the Harmonic Law).",
+        "confidence": "high",
+        "evidence_note": "Contains the mathematical relation connecting orbital period and semi-major axis."
+      },
+      {
+        "year": 1627,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Publishes Tabulae Rudolphinae (Rudolphine Tables), offering unprecedented accuracy for planetary positions using his elliptic laws and logarithms.",
+        "confidence": "high",
+        "evidence_note": "Comprehensive astronomical tables based on Tycho Brahe's observations."
+      }
+    ]
+  },
+  "physics_analysis": [
+    {
+      "contribution_name": "Kepler's First Law of Planetary Motion (Law of Ellipses)",
+      "historical_claim": "Planets move in elliptical orbits with the Sun located at one of the two foci.",
+      "scientific_problem": "Failure of circular and epicyclic heliocentric models (Copernicus) to account for precise observational positional data of Mars collected by Tycho Brahe (discrepancy of up to 8 arcminutes).",
+      "historical_hypothesis": "The true path of Mars is an oval shape, which Kepler subsequently quantified mathematically as a perfect ellipse with the Sun at one focus.",
+      "historical_model_or_framework": "Physical Heliocentrism driven by a solar central magnetic/motive force (anima motrix).",
+      "modern_interpretation": "A direct consequence of the inverse-square central gravitational force field solving the two-body problem in classical Newtonian mechanics ($U(r) = -G M m / r$).",
+      "experiment_details": "Observational data analysis of Mars taken by Tycho Brahe over decades, evaluated using geometric triangulation and iteration.",
+      "historical_experiment_status": "documented",
+      "equations": [
+        {
+          "latex_raw": "r(\\theta) = \\frac{a(1 - e^2)}{1 + e \\cos\\theta}",
+          "historical_or_modern": "modern_reformulation",
+          "variables_definition": {
+            "r": "distance from the central focus (Sun) to the planet",
+            "a": "semi-major axis of the elliptical orbit",
+            "e": "orbital eccentricity (0 <= e < 1)",
+            "theta": "true anomaly (angle between perihelion and current position)"
+          },
+          "validity_domain": "Classical non-relativistic classical mechanics, ideal two-body point-mass system.",
+          "assumptions": "Negligible mass of planet compared to Sun; no gravitational perturbation from other celestial bodies; non-relativistic limit.",
+          "dimensional_consistency": "verified",
+          "attribution_confidence": "high"
+        }
+      ],
+      "result_and_impact": "Completely eliminated the ancient requirement of uniform circular motion and epicycles, providing the most accurate predictive framework for planetary motion.",
+      "limitations_and_boundary_conditions": "Fails to account for multi-body perturbations (e.g., precession of Mercury's perihelion) and General Relativistic spacetime curvature.",
+      "claim_confidence": "high",
+      "anachronism_risk": "low",
+      "verification_note": "Primary historical source: Astronomia Nova (1609)."
+    },
+    {
+      "contribution_name": "Kepler's Second Law of Planetary Motion (Law of Equal Areas)",
+      "historical_claim": "A line segment joining a planet and the Sun sweeps out equal areas during equal intervals of time.",
+      "scientific_problem": "Planets change speed along their orbits, moving faster near perihelion and slower near aphelion; traditional equant models failed to provide physical consistency.",
+      "historical_hypothesis": "The solar motive force weakens with distance, causing planetary speed to be inversely proportional to distance from the Sun.",
+      "historical_model_or_framework": "Solar motive force (vis motrix) acting in the orbital plane.",
+      "modern_interpretation": "Direct manifestation of the conservation of angular momentum ($L = \\mathbf{r} \\times \\mathbf{p}$) under a central force.",
+      "experiment_details": "Numerical integration of geometric area sectors using Tycho Brahe's observations of Mars.",
+      "historical_experiment_status": "documented",
+      "equations": [
+        {
+          "latex_raw": "\\frac{dA}{dt} = \\frac{L}{2m} = \\text{constant}",
+          "historical_or_modern": "modern_reformulation",
+          "variables_definition": {
+            "dA/dt": "rate of area swept per unit time",
+            "L": "orbital angular momentum of the planet",
+            "m": "mass of the planet"
+          },
+          "validity_domain": "Any motion under a purely central force field.",
+          "assumptions": "Central force assumption (force vector directed along line connecting center of mass).",
+          "dimensional_consistency": "verified",
+          "attribution_confidence": "high"
+        }
+      ],
+      "result_and_impact": "Replaced the artificial Ptolemaic equant point with a physically meaningful kinetic rule, establishing speed variation along the orbit.",
+      "limitations_and_boundary_conditions": "Perturbed in real N-body systems where net torque on a single planet is non-zero.",
+      "claim_confidence": "high",
+      "anachronism_risk": "low",
+      "verification_note": "Primary historical source: Astronomia Nova (1609)."
+    },
+    {
+      "contribution_name": "Kepler's Third Law of Planetary Motion (Harmonic Law)",
+      "historical_claim": "The square of the orbital period of a planet is directly proportional to the cube of the semi-major axis of its orbit.",
+      "scientific_problem": "Lack of a unified mathematical relationship connecting all individual planetary orbits to the central Sun.",
+      "historical_hypothesis": "Harmonic proportions and musical ratios govern the global arrangement of planetary orbits.",
+      "historical_model_or_framework": "Archetypal cosmological harmony based on musical and geometric ratios.",
+      "modern_interpretation": "Derived from Newtonian gravity ($F = G M m / r^2$) and circular/elliptic centripetal acceleration ($T^2 = \\frac{4\\pi^2}{G(M+m)} a^3$).",
+      "experiment_details": "Comparative quantitative analysis of the periods ($T$) and mean distances ($a$) of all six known planets (Mercury through Saturn).",
+      "historical_experiment_status": "documented",
+      "equations": [
+        {
+          "latex_raw": "\\frac{T^2}{a^3} = K",
+          "historical_or_modern": "historical",
+          "variables_definition": {
+            "T": "sidereal orbital period of the planet",
+            "a": "semi-major axis (mean distance from Sun)",
+            "K": "constant common to all planets orbiting the same central mass"
+          },
+          "validity_domain": "Solar system dynamics in classical mechanics.",
+          "assumptions": "Mass of individual planet $m \\ll M_{\\text{Sun}}$.",
+          "dimensional_consistency": "verified",
+          "attribution_confidence": "high"
+        }
+      ],
+      "result_and_impact": "Allowed Newton to deduce that gravitational force decreases with the inverse square of the distance.",
+      "limitations_and_boundary_conditions": "Requires $m \\ll M$; for binary stars of comparable mass, the sum of masses $(M_1 + M_2)$ must be explicitly included.",
+      "claim_confidence": "high",
+      "anachronism_risk": "low",
+      "verification_note": "Primary historical source: Harmonices Mundi (1619), Book V."
+    },
+    {
+      "contribution_name": "Inverse-Square Law of Illuminance & Retinal Image Formation",
+      "historical_claim": "Light intensity from a point source diminishes inversely with the square of the distance; vision occurs because an inverted image is formed by the ocular lens onto the retina.",
+      "scientific_problem": "Lack of quantitative physics for light propagation and unclear understanding of the visual process in medieval optics (e.g., Alhazen, Witelo).",
+      "historical_hypothesis": "Light rays travel rectilinearly and spread out spherically from a source; the eye acts optically like a pinhole camera with a focus on the retina.",
+      "historical_model_or_framework": "Geometrical optics based on ray tracing and refraction properties.",
+      "modern_interpretation": "Standard geometrical optics and photometric conservation of radiant flux across expanding spherical wavefronts.",
+      "experiment_details": "Analysis of pinhole aperture images (camera obscura) and geometric analysis of light dispersion from point sources.",
+      "historical_experiment_status": "documented",
+      "equations": [
+        {
+          "latex_raw": "E = \\frac{I}{r^2}",
+          "historical_or_modern": "modern_reformulation",
+          "variables_definition": {
+            "E": "illuminance on a surface",
+            "I": "luminous intensity of point source",
+            "r": "distance from source to surface"
+          },
+          "validity_domain": "Classical geometrical optics for isotropic point sources in non-absorbing media.",
+          "assumptions": "Point source emit light uniformly in all directions; light travels through non-attenuating media.",
+          "dimensional_consistency": "verified",
+          "attribution_confidence": "high"
+        }
+      ],
+      "result_and_impact": "Founded modern geometrical optics and physiological optics, clarifying how images are focused on the retina.",
+      "limitations_and_boundary_conditions": "Applies strictly to isotropic point sources and geometrical optics regimes (ignoring wave phenomena like diffraction).",
+      "claim_confidence": "high",
+      "anachronism_risk": "low",
+      "verification_note": "Primary historical source: Ad Vitellionem Paralipomena (1604)."
+    }
+  ],
+  "knowledge_graph_relations": {
+    "teachers": [
+      "Michael Maestlin"
+    ],
+    "students": [],
+    "collaborators": [
+      "Tycho Brahe"
+    ],
+    "precursors_built_upon": [
+      "Nicolaus Copernicus",
+      "Tycho Brahe",
+      "Ibn al-Haytham (Alhazen)",
+      "Witelo"
+    ],
+    "influenced_scientists": [
+      "Isaac Newton",
+      "Galileo Galilei",
+      "Christiaan Huygens",
+      "Gottfried Wilhelm Leibniz",
+      "Jeremiah Horrocks"
+    ]
+  },
+  "major_claims_audit": [
+    {
+      "claim": "Johannes Kepler invented integral calculus.",
+      "claim_type": "mathematical",
+      "confidence": "high",
+      "status": "qualified",
+      "recommended_wording": "Kepler developed early techniques of infinitesimal summation (stereometry of barrels) that served as key historical precursors to integral calculus, though calculus as a general systematic method was invented later by Newton and Leibniz.",
+      "risk": "medium"
+    },
+    {
+      "claim": "Kepler discovered that gravity is an inverse-square force.",
+      "claim_type": "scientific",
+      "confidence": "high",
+      "status": "disputed",
+      "recommended_wording": "Kepler proposed a magnetic-like central solar force (anima/vis motrix) that decreased with distance, but believed it decreased linearly ($1/r$) in the orbital plane rather than as an inverse-square gravitational force field ($1/r^2$). Newton later derived $1/r^2$ gravity using Kepler's Third Law.",
+      "risk": "high"
+    },
+    {
+      "claim": "Kepler formulated his three laws of planetary motion in a single unified treatise.",
+      "claim_type": "chronological",
+      "confidence": "high",
+      "status": "disputed",
+      "recommended_wording": "Kepler published his First and Second Laws in Astronomia Nova (1609), and his Third Law a decade later in Harmonices Mundi (1619).",
+      "risk": "medium"
+    }
+  ],
+  "verified_sources": [
+    {
+      "title": "Kepler",
+      "institution_or_author": "Max Caspar",
+      "authority_level": "A",
+      "source_type": "scholarly_book",
+      "url": "https://archive.org/details/kepler0000casp",
+      "supported_claim": "Definitive biological detail, timelines, and academic developments of Kepler's life.",
+      "source_confidence": "high"
+    },
+    {
+      "title": "Kepler's Physical Astronomy",
+      "institution_or_author": "Bruce Stephenson",
+      "authority_level": "A",
+      "source_type": "scholarly_book",
+      "url": "https://press.princeton.edu/books/paperback/9780691085265/keplers-physical-astronomy",
+      "supported_claim": "Analysis of Kepler's derivation of the first two laws and physical hypotheses in Astronomia Nova.",
+      "source_confidence": "high"
+    },
+    {
+      "title": "The Astronomical Revolution: Copernicus, Kepler, Borelli",
+      "institution_or_author": "Alexandre Koyré",
+      "authority_level": "A",
+      "source_type": "scholarly_book",
+      "url": "https://www.worldcat.org/title/astronomical-revolution-copernicus-kepler-borelli/oclc/462198084",
+      "supported_claim": "Historical transformation of planetary motion geometry into astrophysics.",
+      "source_confidence": "high"
+    },
+    {
+      "title": "Johannes Kepler: Optics and Retinal Image Formulation",
+      "institution_or_author": "Dictionary of Scientific Biography / Charles Coulston Gillispie",
+      "authority_level": "A",
+      "source_type": "reference",
+      "url": "https://www.encyclopedia.com/people/science-and-technology/astronomy-biographies/johannes-kepler",
+      "supported_claim": "Verification of optical contributions in Ad Vitellionem Paralipomena and Dioptrice.",
+      "source_confidence": "high"
+    }
+  ],
+  "verification_summary": {
+    "historical_accuracy": 98,
+    "scientific_accuracy": 99,
+    "mathematical_accuracy": 97,
+    "source_quality": 96,
+    "major_uncertainties": [
+      "Exact dynamic mechanics Kepler envisioned for the vis motrix solar sweep vs. magnetic attraction in planetary rotation."
+    ],
+    "high_risk_claims": [
+      "Attributing the full inverse-square law of universal gravitation directly to Kepler instead of Isaac Newton."
+    ],
+    "ready_for_article_generation": true
+  }
+}

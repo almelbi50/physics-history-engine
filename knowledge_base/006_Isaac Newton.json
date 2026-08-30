@@ -1,0 +1,298 @@
+{
+  "entity_resolution": {
+    "canonical_name": "Isaac Newton",
+    "arabic_name": "إسحاق نيوتن",
+    "english_name": "Isaac Newton",
+    "alternative_names": [
+      "Sir Isaac Newton"
+    ],
+    "birth_date": "1643-01-04",
+    "death_date": "1727-03-31",
+    "birth_date_precision": "exact",
+    "death_date_precision": "exact",
+    "birth_place": "Woolsthorpe-by-Colsterworth, Lincolnshire, England",
+    "nationality_context": "English",
+    "identity_confidence": 100
+  },
+  "importance_evaluation": {
+    "score": 100,
+    "eligible_for_pipeline": true,
+    "scientific_significance": "Formulated the fundamental laws of classical mechanics, universal gravitation, optics, and independently developed infinitesimal calculus, laying the theoretical foundation of modern classical physics.",
+    "historical_significance": "Key central figure of the 17th-century Scientific Revolution whose 1687 publication Principia Mathematica unified celestial and terrestrial mechanics under a single mathematical paradigm."
+  },
+  "timelines": {
+    "timeline_a_biological": [
+      {
+        "year": 1643,
+        "date_precision": "exact",
+        "event": "Born at Woolsthorpe Manor, Lincolnshire (January 4, 1643 New Style / December 25, 1642 Old Style).",
+        "confidence": "high",
+        "evidence_note": "Recorded in local parish registers; date variations stem from Julian vs. Gregorian calendars."
+      },
+      {
+        "year": 1661,
+        "date_precision": "exact",
+        "event": "Entered Trinity College, Cambridge as a sizar.",
+        "confidence": "high",
+        "evidence_note": "University of Cambridge admission records."
+      },
+      {
+        "year": 1665,
+        "date_precision": "exact",
+        "event": "Graduated B.A.; returned to Woolsthorpe due to the Great Plague outbreak at Cambridge.",
+        "confidence": "high",
+        "evidence_note": "Cambridge University records and Newton's personal notebooks."
+      },
+      {
+        "year": 1669,
+        "date_precision": "exact",
+        "event": "Appointed Lucasian Professor of Mathematics at Cambridge succeeding Isaac Barrow.",
+        "confidence": "high",
+        "evidence_note": "Official appointment records at Trinity College."
+      },
+      {
+        "year": 1696,
+        "date_precision": "exact",
+        "event": "Moved to London to become Warden of the Royal Mint; later promoted to Master of the Mint in 1699.",
+        "confidence": "high",
+        "evidence_note": "Royal Mint historical records and official correspondence."
+      },
+      {
+        "year": 1703,
+        "date_precision": "exact",
+        "event": "Elected President of the Royal Society, holding the post until his death.",
+        "confidence": "high",
+        "evidence_note": "Royal Society administrative records."
+      },
+      {
+        "year": 1705,
+        "date_precision": "exact",
+        "event": "Knighted by Queen Anne at Trinity College, Cambridge.",
+        "confidence": "high",
+        "evidence_note": "Historical royal knighthood registries."
+      },
+      {
+        "year": 1727,
+        "date_precision": "exact",
+        "event": "Died in London on March 31, 1727 (NS) / March 20, 1726/27 (OS) and buried in Westminster Abbey.",
+        "confidence": "high",
+        "evidence_note": "Westminster Abbey burial records and contemporary obituaries."
+      }
+    ],
+    "timeline_b_scientific": [
+      {
+        "year": 1665,
+        "date_precision": "approximate",
+        "event_type": "theoretical_breakthrough",
+        "description": "Annus Mirabilis: Developed early concepts of calculus (fluxions), optical experiments with prisms, and initial ideas on gravity.",
+        "confidence": "high",
+        "evidence_note": "Newton's 'Waste Book' and private manuscripts dated 1665-1666."
+      },
+      {
+        "year": 1668,
+        "date_precision": "exact",
+        "event_type": "experimental_construction",
+        "description": "Constructed the first practical reflecting telescope (Newtonian reflector).",
+        "confidence": "high",
+        "evidence_note": "Presented to the Royal Society in late 1671."
+      },
+      {
+        "year": 1672,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Published 'New Theory about Light and Colors' in the Philosophical Transactions of the Royal Society.",
+        "confidence": "high",
+        "evidence_note": "Philosophical Transactions, Vol. 6, No. 80 (1672)."
+      },
+      {
+        "year": 1687,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Published 'Philosophiae Naturalis Principia Mathematica' setting forth three laws of motion and universal gravitation.",
+        "confidence": "high",
+        "evidence_note": "First edition published by the Royal Society under Edmond Halley's supervision."
+      },
+      {
+        "year": 1704,
+        "date_precision": "exact",
+        "event_type": "publication",
+        "description": "Published 'Opticks: or, a Treatise of the Reflexions, Refractions, Inflexions and Colours of Light'.",
+        "confidence": "high",
+        "evidence_note": "First English edition published in London."
+      }
+    ]
+  },
+  "physics_analysis": [
+    {
+      "contribution_name": "Law of Universal Gravitation",
+      "historical_claim": "Every point mass attracts every other point mass in the universe by a force proportional to the product of their masses and inversely proportional to the square of the distance between them.",
+      "scientific_problem": "Explaining both planetary motion (Kepler's laws) and terrestrial free-fall under a single unified mathematical force law.",
+      "historical_hypothesis": "Gravitational attraction extends indefinitely from Earth to the Moon and planets, decreasing with the inverse square of distance.",
+      "historical_model_or_framework": "Geometrical dynamic model utilizing limits, geometric proportions, and inverse-square attraction acting central to masses.",
+      "modern_interpretation": "A classical non-relativistic force law accurate for weak gravitational fields and speeds much lower than the speed of light; understood as a weak-field limit of General Relativity.",
+      "experiment_details": "Mathematical deduction combining lunar orbit data, Kepler's third law, and terrestrial pendulum experiments; later experimentally confirmed directly by Cavendish (1798).",
+      "historical_experiment_status": "documented",
+      "equations": [
+        {
+          "latex_raw": "F = G \\frac{m_1 m_2}{r^2}",
+          "historical_or_modern": "modern_reformulation",
+          "variables_definition": {
+            "F": "Gravitational force between two masses",
+            "G": "Gravitational constant (introduced explicitly in modern formulation)",
+            "m_1, m_2": "Masses of the interacting bodies",
+            "r": "Distance between centers of mass"
+          },
+          "validity_domain": "Classical non-relativistic mechanics in weak gravitational fields",
+          "assumptions": "Spherical bodies with uniform mass distribution act as point masses; non-relativistic speeds; Euclidean space",
+          "dimensional_consistency": "verified",
+          "attribution_confidence": "high"
+        }
+      ],
+      "result_and_impact": "Successfully derived Kepler's three laws of planetary motion, explained oceanic tides, and unified terrestrial and celestial mechanics.",
+      "limitations_and_boundary_conditions": "Fails in strong gravitational fields, high speeds approaching light, or precise anomalies such as Mercury's perihelion precession.",
+      "claim_confidence": "high",
+      "anachronism_risk": "low",
+      "verification_note": "Newton expressed relationships via geometric proportions rather than modern algebraic notation with an explicit gravitational constant G."
+    },
+    {
+      "contribution_name": "Three Laws of Motion",
+      "historical_claim": "Formulated the foundational laws governing body inertia, force acceleration relation, and action-reaction pairs.",
+      "scientific_problem": "Lack of a rigorous mechanical foundation to describe inertia, force, and dynamic interactions of physical bodies.",
+      "historical_hypothesis": "Motion changes only when acted upon by net external forces, and force is proportional to the rate of change of motion (momentum).",
+      "historical_model_or_framework": "Axiomatic classical mechanics framework presented in the Principia Mathematica.",
+      "modern_interpretation": "The foundational dynamic laws of Newtonian mechanics, valid in inertial frames for macroscopic objects moving at non-relativistic speeds.",
+      "experiment_details": "Synthesized observational data on pendulums, collisions, falling bodies, and astronomical orbits.",
+      "historical_experiment_status": "documented",
+      "equations": [
+        {
+          "latex_raw": "\\vec{F} = \\frac{d\\vec{p}}{dt}",
+          "historical_or_modern": "modern_reformulation",
+          "variables_definition": {
+            "\\vec{F}": "Net external force vector",
+            "\\vec{p}": "Linear momentum vector (mass times velocity)",
+            "t": "Time"
+          },
+          "validity_domain": "Inertial reference frames at non-relativistic speeds",
+          "assumptions": "Constant mass system, classical space and time metrics",
+          "dimensional_consistency": "verified",
+          "attribution_confidence": "high"
+        }
+      ],
+      "result_and_impact": "Established classical mechanics as an exact mathematical science, defining concepts of force, mass, and momentum.",
+      "limitations_and_boundary_conditions": "Inapplicable at quantum scales or near light speed; requires modification in non-inertial frames via fictitious forces.",
+      "claim_confidence": "high",
+      "anachronism_risk": "low",
+      "verification_note": "Newton defined 'quantity of motion' as momentum (mass times velocity); F = ma is Euler's later algebraic formulation."
+    },
+    {
+      "contribution_name": "Decomposition of White Light and Spectrum Theory",
+      "historical_claim": "White light is not simple and homogeneous, but a heterogeneous mixture of refrangible rays corresponding to distinct colors.",
+      "scientific_problem": "Prevailing Aristotelian view held that color was a modification of pure white light caused by glass or medium.",
+      "historical_hypothesis": "Prisms separate light into constituent spectral colors based on their varying differential refrangibility.",
+      "historical_model_or_framework": "Corpuscular / particle theory of light combined with optical refraction analysis.",
+      "modern_interpretation": "White light consists of a continuous spectrum of electromagnetic wavelengths, each bending differently in dispersive media according to its refractive index.",
+      "experiment_details": "Experimentum Crucis: Isolated a single colored ray passing through a first prism and directed it through a second prism; the color did not change further, proving refrangibility was an intrinsic property of the light ray.",
+      "historical_experiment_status": "documented",
+      "equations": [],
+      "result_and_impact": "Revolutionized optical science, led to the design of reflecting telescopes free from chromatic aberration, and established modern optics.",
+      "limitations_and_boundary_conditions": "Newton's corpuscular light hypothesis failed to explain wave phenomena like diffraction and interference without complex secondary assumptions.",
+      "claim_confidence": "high",
+      "anachronism_risk": "low",
+      "verification_note": "Well documented in his 1672 Royal Society paper and detailed in 'Opticks' (1704)."
+    }
+  ],
+  "knowledge_graph_relations": {
+    "teachers": [
+      "Isaac Barrow"
+    ],
+    "students": [
+      "Roger Cotes",
+      "William Whiston"
+    ],
+    "collaborators": [
+      "Edmond Halley"
+    ],
+    "precursors_built_upon": [
+      "Galileo Galilei",
+      "Johannes Kepler",
+      "René Descartes",
+      "Christiaan Huygens",
+      "Robert Hooke"
+    ],
+    "influenced_scientists": [
+      "Pierre-Simon Laplace",
+      "Joseph-Louis Lagrange",
+      "Leonhard Euler",
+      "Albert Einstein"
+    ]
+  },
+  "major_claims_audit": [
+    {
+      "claim": "Isaac Newton invented calculus single-handedly.",
+      "claim_type": "attributional",
+      "confidence": "high",
+      "status": "qualified",
+      "recommended_wording": "Isaac Newton and Gottfried Wilhelm Leibniz independently developed calculus, Newton focusing on fluxions and Leibniz developing the modern differential/integral notation.",
+      "risk": "medium"
+    },
+    {
+      "claim": "An apple fell on Newton's head, causing him to instantly discover universal gravity.",
+      "claim_type": "historical",
+      "confidence": "high",
+      "status": "qualified",
+      "recommended_wording": "Newton recalled being inspired to think about gravity while observing an apple fall from a tree, but universal gravitation was developed through years of rigorous mathematical analysis.",
+      "risk": "medium"
+    },
+    {
+      "claim": "Newton formulated F = ma explicitly in his Principia.",
+      "claim_type": "mathematical",
+      "confidence": "high",
+      "status": "qualified",
+      "recommended_wording": "Newton stated the second law in words as proportional change in momentum; the modern equation F = ma was later explicitly written by Leonhard Euler.",
+      "risk": "low"
+    }
+  ],
+  "verified_sources": [
+    {
+      "title": "Philosophiae Naturalis Principia Mathematica",
+      "institution_or_author": "Isaac Newton",
+      "authority_level": "A",
+      "source_type": "primary",
+      "url": "https://www.gutenberg.org/ebooks/28233",
+      "supported_claim": "Formulation of the three laws of motion and universal gravitation.",
+      "source_confidence": "high"
+    },
+    {
+      "title": "Opticks: or, a Treatise of the Reflexions, Refractions, Inflexions and Colours of Light",
+      "institution_or_author": "Isaac Newton",
+      "authority_level": "A",
+      "source_type": "primary",
+      "url": "https://archive.org/details/opticksortreatis00newt",
+      "supported_claim": "Prism experiments, spectrum decomposition, and corpuscular optical theory.",
+      "source_confidence": "high"
+    },
+    {
+      "title": "Never at Rest: A Biography of Isaac Newton",
+      "institution_or_author": "Richard S. Westfall",
+      "authority_level": "A",
+      "source_type": "scholarly_book",
+      "url": "https://www.cambridge.org/core/books/never-at-rest/54C940B513E0EAE9FE158D79BB1C9414",
+      "supported_claim": "Comprehensive biographical dates, priority priority disputes, and academic chronology.",
+      "source_confidence": "high"
+    }
+  ],
+  "verification_summary": {
+    "historical_accuracy": 100,
+    "scientific_accuracy": 100,
+    "mathematical_accuracy": 100,
+    "source_quality": 100,
+    "major_uncertainties": [
+      "Exact timeline of private early fluxion notes during 1665-1666 plague years relative to Leibniz's independent discoveries."
+    ],
+    "high_risk_claims": [
+      "Attributing the modern equation F=ma directly to Newton without clarifying his original momentum formulation.",
+      "Over-simplifying the priority dispute over calculus between Newton and Leibniz."
+    ],
+    "ready_for_article_generation": true
+  }
+}

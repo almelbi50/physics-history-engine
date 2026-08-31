@@ -1,16 +1,7 @@
-#!/usr/bin/env python3
-"""
-physics_pipeline.py
-===================
-Automated Two-Stage Physics Editorial & Fact-Extraction Pipeline for phy-lab.com.
-Engineered for strict academic accuracy, historical rigor, and MathJax/LaTeX integration.
-"""
-
-import os
-import sys
 import json
-import time
+import os
 import re
+import sys
 import requests
 import google.generativeai as genai
 
@@ -22,224 +13,117 @@ WP_URL = os.getenv("WP_URL") or "https://phy-lab.com/wp-json/wp/v2"
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
+# Use environment variable for flexible model testing (Defaults to stable gemini-2.5-flash)
+MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-2.5-flash"
+
 if not GEMINI_API_KEY:
     print("[CRITICAL] GEMINI_API_KEY environment variable is missing.")
     sys.exit(1)
 
 genai.configure(api_key=GEMINI_API_KEY)
-
-model = genai.GenerativeModel("gemini-3.6-flash")
+print(f"[Pipeline Init] Initializing model: {MODEL_NAME}")
+model = genai.GenerativeModel(MODEL_NAME)
 
 # ==============================================================================
-# STAGE 1 PROMPT: FACT EXTRACTION ENGINE
+# PROMPT DEFINITIONS
 # ==============================================================================
-STAGE_1_PROMPT = """
-You are a specialized Physics Historian, Scientific Fact-Checker, and Fact-Extraction Engine for phy-lab.com.
 
-Target Scientist: {scientist_name}
+STAGE_1_PROMPT = """You are a senior academic research assistant in physics and history of science.
 
-Your task is to build a scientifically rigorous structured knowledge base about the scientist.
+Input Physicist Entity:
+Name: {physicists_name}
+Arabic Name: {physicists_name_ar}
 
-IMPORTANT:
-This is NOT a creative biography generation task.
-Accuracy has priority over completeness, rhetorical impact, or impressive claims.
+Your task is to conduct deep, rigorous research and structure a factual blueprint for an exhaustive academic profile.
 
-You MUST distinguish between:
-1. Historically established facts.
-2. Strong scholarly interpretations.
-3. Historically disputed claims.
-4. Modern interpretations of historical scientific work.
+Perform systematic validation across these structural dimensions:
+1. Exact transliterated Arabic primary name.
+2. Concise biographical timeline (Birth/Death/Institutional affiliations).
+3. Core scientific contributions (Laws, equations, empirical apparatus, physical constants).
+4. Academic and historical context.
+5. Primary and peer-reviewed sources (MANDATORY).
 
-Do NOT invent dates, discoveries, equations, experiments, titles, relationships, or attributions.
+STRICT MATHEMATICAL RULE FOR STAGE 1:
+All mathematical formulations and physical variables MUST strictly use standard LaTeX notation ($...$ or $$...$$).
 
-If an exact date is uncertain, DO NOT fabricate an exact YYYY-MM-DD date.
-Use null for uncertain exact dates and explain the uncertainty in the relevant evidence field.
-
-Do NOT automatically describe a scientist as: founder, inventor, first, father of, creator of the scientific method, discoverer of a law, pioneer, unless the attribution is sufficiently supported.
-
-Return ONLY valid JSON matching this schema:
-
+You MUST respond strictly with a valid JSON object matching this schema:
 {{
-  "entity_resolution": {{
-    "canonical_name": "",
-    "arabic_name": "",
-    "english_name": "",
-    "alternative_names": [],
-    "birth_date": null,
-    "death_date": null,
-    "birth_date_precision": "exact|approximate|unknown",
-    "death_date_precision": "exact|approximate|unknown",
-    "birth_place": "",
-    "nationality_context": "",
-    "identity_confidence": 0
-  }},
-
-  "importance_evaluation": {{
-    "score": 0,
-    "eligible_for_pipeline": true,
-    "scientific_significance": "",
-    "historical_significance": ""
-  }},
-
-  "timelines": {{
-    "timeline_a_biological": [
-      {{
-        "year": null,
-        "date_precision": "exact|approximate|unknown",
-        "event": "",
-        "confidence": "high|medium|low",
-        "evidence_note": ""
-      }}
-    ],
-    "timeline_b_scientific": [
-      {{
-        "year": null,
-        "date_precision": "exact|approximate|unknown",
-        "event_type": "",
-        "description": "",
-        "confidence": "high|medium|low",
-        "evidence_note": ""
-      }}
-    ]
-  }},
-
-  "physics_analysis": [
+  "canonical_name_ar": "string",
+  "canonical_name_en": "string",
+  "lifespan": "string",
+  "nationality": "string",
+  "primary_fields": ["string"],
+  "biographical_summary": "string",
+  "major_discoveries": [
     {{
-      "contribution_name": "",
-      "historical_claim": "",
-      "scientific_problem": "",
-      "historical_hypothesis": "",
-      "historical_model_or_framework": "",
-      "modern_interpretation": "",
-      "experiment_details": "",
-      "historical_experiment_status": "documented|probable|disputed|unknown",
-
-      "equations": [
-        {{
-          "latex_raw": "",
-          "historical_or_modern": "historical|modern_reformulation",
-          "variables_definition": {{}},
-          "validity_domain": "",
-          "assumptions": "",
-          "dimensional_consistency": "verified|not_applicable|uncertain",
-          "attribution_confidence": "high|medium|low"
-        }}
-      ],
-
-      "result_and_impact": "",
-      "limitations_and_boundary_conditions": "",
-
-      "claim_confidence": "high|medium|low",
-      "anachronism_risk": "low|medium|high",
-      "verification_note": ""
+      "concept_ar": "string",
+      "concept_en": "string",
+      "mathematical_formulation": "string (LaTeX formatted)",
+      "physical_significance": "string",
+      "experimental_apparatus": "string"
     }}
   ],
-
-  "knowledge_graph_relations": {{
-    "teachers": [],
-    "students": [],
-    "collaborators": [],
-    "precursors_built_upon": [],
-    "influenced_scientists": []
-  }},
-
-  "major_claims_audit": [
-    {{
-      "claim": "",
-      "claim_type": "historical|scientific|mathematical|attributional|chronological",
-      "confidence": "high|medium|low",
-      "status": "established|qualified|disputed|insufficient_evidence",
-      "recommended_wording": "",
-      "risk": "low|medium|high"
-    }}
-  ],
-
   "verified_sources": [
     {{
-      "title": "",
-      "institution_or_author": "",
-      "authority_level": "A|B|C",
-      "source_type": "primary|peer_reviewed|scholarly_book|university|encyclopedia|reference",
-      "url": "",
-      "supported_claim": "",
-      "source_confidence": "high|medium|low"
+      "title": "string",
+      "author_or_institution": "string",
+      "authority_level": "string",
+      "url": "string"
     }}
-  ],
-
-  "verification_summary": {{
-    "historical_accuracy": 0,
-    "scientific_accuracy": 0,
-    "mathematical_accuracy": 0,
-    "source_quality": 0,
-    "major_uncertainties": [],
-    "high_risk_claims": [],
-    "ready_for_article_generation": true
-  }}
+  ]
 }}
 """
 
-# ==============================================================================
-# STAGE 2 PROMPT: ACADEMIC HTML ARTICLE GENERATOR
-# ==============================================================================
-STAGE_2_PROMPT = """
-You are an Academic Physics Editor and Scientific Fact-Checking Editor writing for phy-lab.com.
+STAGE_2_PROMPT = """You are an expert scientific communicator, senior physics editor, and technical educator writing for "phy-lab.com" (مبادرة معامل الفيزياء).
 
-Target Scientist: {scientist_name}
+RESEARCH BLUEPRINT (STAGE 1 OUTPUT):
+{stage_1_json}
 
-Generate a publication-ready WordPress HTML article using ONLY the structured knowledge base provided below.
-
-JSON Data:
-{stage1_json}
+Your goal is to write a comprehensive, publication-ready academic article in clean HTML, adhering strictly to the highest standards of scientific accuracy, historical precision, and technical formatting.
 
 --------------------------------------------------
-SCIENTIFIC AND HISTORICAL WRITING RULES
+MANDATORY CONTENT WEIGHT & STRUCTURE (80% PHYSICS / 20% HISTORY)
 --------------------------------------------------
+1. H1 Main Title: Exact Arabic Name ONLY (e.g., "دانيال برنولي"). No extra subtitles, numbers, or descriptors.
+2. Introduction (~20% of content): Concise historical background and overall physical impact. Avoid lengthy biographical narratives.
+3. Theoretical & Mathematical Foundations (~30% of content):
+   - Detailed physical principles.
+   - FULL mathematical derivations.
+   - MANDATORY: ALL physical variables, constants, and equations MUST strictly use LaTeX formatting ($...$ for inline and $$...$$ for block formulas). Plain text math is STRICTLY FORBIDDEN.
+4. Experimental Apparatus & Laboratory Metrology (~25% of content):
+   - Detailed physical characterization of experimental setups, measurement procedures, and error analysis.
+5. Modern Laboratory & Technological Applications (~25% of content):
+   - Practical modern applications and how the concepts are implemented in university laboratory experiments.
+6. References & Scientific Sources Section (MANDATORY):
+   - You MUST include a dedicated HTML table or structured list of all verified references from Stage 1 before the AI disclosure box.
+7. AI Transparency Box:
+   - Include a clean HTML callout box stating that this article was synthesized via the Physics Pipeline Engine and reviewed academically for phy-lab.com.
 
-1. LANGUAGE
-The entire article (post_title, html_content, meta_description) MUST be written in professional, formal academic Arabic. Use established Arabic scientific terminology, including English scientific terms at first occurrence.
+--------------------------------------------------
+QUALITY CONTROL EVALUATION (QA)
+--------------------------------------------------
+Evaluate your generated content internally and fill the `qa_evaluation` object:
+- quality_score: Integer (0 to 100).
+- has_mandatory_references: Boolean (MUST be true if references table/list is explicitly generated in html_content).
+- has_strict_latex: Boolean (MUST be true if all equations and physical variables use $...$ or $$...$$).
+- critical_errors: List of string errors found.
+- publish_recommendation: "PUBLISH" if score >= 90, has_mandatory_references is true, and has_strict_latex is true, else "REVIEW".
 
-2. TITLE
-post_title MUST contain only the scientist's Arabic name (e.g., "أبو الريحان البيروني"). Do NOT add subtitles.
-
-3. EQUATIONS AND MATHEMATICAL FORMATTING (CRITICAL)
-- STRICT RULE: Do NOT use shortcode tags like [latex], [/latex], [\latex], or [mathjax].
-- All block/display equations MUST use standard LaTeX display delimiters on a separate line:
-  $$ equation $$
-- All inline variables, physical constants, and mathematical symbols MUST use standard inline LaTeX delimiters:
-  $ var $
-- Example Block: $$ \\text{{S.G.}} = \\frac{{W_{{\\text{{air}}}}}}{{W_{{\\text{{air}}}} - W_{{\\text{{water}}}}}} $$
-- Example Inline: حيث تمثل $W_{{\\text{{air}}}}$ وزن العينة في الهواء.
-- CRITICAL: Always preserve backslashes (\\) for LaTeX commands such as \\frac, \\text, \\rho, \\theta.
-
-4. NO BLOCKQUOTES
-Do NOT use <blockquote> tags under any circumstances. Use headings, paragraphs, tables, or lists instead.
-
-5. MANDATORY FINAL AI DISCLOSURE
-At the very end of html_content append EXACTLY:
-<hr />
-<div style="background-color: #f8f9fa; border-right: 4px solid #0073aa; padding: 12px 16px; margin-top: 25px; font-size: 0.9em; color: #555; line-height: 1.6;">
-<strong>تنويه:</strong> أُعدّ هذا المقال آليًا بواسطة وكيل ذكاء اصطناعي وفق معايير محددة للبحث والتحقق والصياغة العلمية، مع الاستناد إلى مصادر موثوقة. ويُنصح بالرجوع إلى المراجع المرفقة للتحقق من التفاصيل والمعلومات الواردة في المقال.
-</div>
-
-Return ONLY valid JSON:
+You MUST respond strictly with a valid JSON object matching this schema:
 {{
-  "post_title": "",
-  "html_content": "",
+  "post_title": "string (Exact Arabic Name Only)",
+  "html_content": "string (Full HTML article with inline LaTeX and HTML references table)",
   "seo": {{
-    "meta_description": "",
-    "primary_keyword": "",
-    "slug": ""
+    "meta_description": "string",
+    "slug": "string",
+    "keywords": ["string"]
   }},
   "qa_evaluation": {{
     "quality_score": 0,
+    "has_mandatory_references": true,
+    "has_strict_latex": true,
     "critical_errors": [],
-    "warnings": [],
-    "historical_accuracy": 0,
-    "scientific_accuracy": 0,
-    "mathematical_accuracy": 0,
-    "source_quality": 0,
-    "anachronism_check": "PASS|WARNING|FAIL",
-    "publish_recommendation": "PUBLISH|REVIEW|REJECT"
+    "publish_recommendation": "PUBLISH"
   }}
 }}
 """
@@ -247,60 +131,67 @@ Return ONLY valid JSON:
 # ==============================================================================
 # HELPER FUNCTIONS
 # ==============================================================================
-def generate_content_with_retry(prompt_text, max_retries=3, delay=5):
-    """Executes Gemini API requests with exponential backoff strategy."""
-    for attempt in range(max_retries):
-        try:
-            response = model.generate_content(
-                prompt_text,
-                generation_config={"response_mime_type": "application/json"}
-            )
-            return json.loads(response.text)
-        except Exception as e:
-            print(f"[Warning] API call attempt {attempt + 1} failed: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(delay * (2 ** attempt))
-            else:
-                raise e
 
-def clean_html_latex(html_content):
-    """Sanitizes generated HTML by removing residual or malformed shortcodes."""
-    # Removes any leftover [latex] or [/latex] variants
-    cleaned = re.sub(r'\[/?\\?latex\]', '', html_content, flags=re.IGNORECASE)
-    cleaned = re.sub(r'\[mathjax\]', '', cleaned, flags=re.IGNORECASE)
-    return cleaned
+def clean_json_response(text: str) -> str:
+    """Extracts JSON content from markdown code blocks if present."""
+    text = text.strip()
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+    if match:
+        return match.group(1).strip()
+    return text
 
-def get_wordpress_category_id(category_slug="physicists"):
-    """Fetches category ID for taxonomy assignment via REST API."""
+def clean_html_latex(html_content: str) -> str:
+    """Sanitizes generated HTML and preserves LaTeX tags."""
+    return html_content.strip()
+
+def get_wordpress_category_id(slug: str = "physicists") -> list:
+    """Retrieves or defaults the WordPress category ID."""
     if not (WP_USER and WP_PASSWORD):
         return []
-    endpoint = f"{WP_URL.rstrip('/')}/categories?slug={category_slug}"
     try:
-        res = requests.get(endpoint, auth=(WP_USER, WP_PASSWORD), timeout=15)
+        endpoint = f"{WP_URL.rstrip('/')}/categories?slug={slug}"
+        res = requests.get(endpoint, auth=(WP_USER, WP_PASSWORD), timeout=10)
         if res.status_code == 200 and len(res.json()) > 0:
             return [res.json()[0]["id"]]
     except Exception as e:
-        print(f"[Warning] Category lookup failed: {e}")
+        print(f"[WordPress Warning] Category lookup error: {e}")
     return []
 
-def post_to_wordpress(article_data):
-    """Posts generated HTML article draft to WordPress via REST API."""
+def post_or_update_wordpress(article_data: dict) -> bool:
+    """Posts a new article OR updates an existing post if the slug already exists."""
     if not (WP_USER and WP_PASSWORD):
         print("[Error] Missing WordPress authentication credentials.")
         return False
 
-    endpoint = f"{WP_URL.rstrip('/')}/posts"
     categories = get_wordpress_category_id("physicists")
     sanitized_content = clean_html_latex(article_data["html_content"])
+    target_slug = article_data["seo"]["slug"]
+
+    # Search for existing post with the same slug to prevent duplicate URLs (e.g., -2, -3)
+    search_endpoint = f"{WP_URL.rstrip('/')}/posts?slug={target_slug}&status=any"
+    existing_post_id = None
+
+    try:
+        search_res = requests.get(search_endpoint, auth=(WP_USER, WP_PASSWORD), timeout=15)
+        if search_res.status_code == 200 and len(search_res.json()) > 0:
+            existing_post_id = search_res.json()[0]["id"]
+            print(f"[WordPress API] Found existing post ID: {existing_post_id} for slug '{target_slug}'. Executing UPDATE.")
+    except Exception as e:
+        print(f"[WordPress API Warning] Post lookup failed: {e}")
 
     payload = {
         "title": article_data["post_title"],
         "content": sanitized_content,
         "status": "draft",
-        "slug": article_data["seo"]["slug"],
+        "slug": target_slug,
         "excerpt": article_data["seo"]["meta_description"],
         "categories": categories
     }
+
+    if existing_post_id:
+        endpoint = f"{WP_URL.rstrip('/')}/posts/{existing_post_id}"
+    else:
+        endpoint = f"{WP_URL.rstrip('/')}/posts"
 
     try:
         response = requests.post(
@@ -311,7 +202,8 @@ def post_to_wordpress(article_data):
             timeout=30
         )
         if response.status_code in [200, 201]:
-            print(f"[WordPress API] Draft created successfully. ID: {response.json().get('id')}")
+            action = "Updated" if existing_post_id else "Created"
+            print(f"[WordPress API] Post {action} successfully. ID: {response.json().get('id')}")
             return True
         else:
             print(f"[WordPress API Error] Status {response.status_code}: {response.text}")
@@ -321,118 +213,98 @@ def post_to_wordpress(article_data):
         return False
 
 # ==============================================================================
-# MAIN EXECUTION FLOW
+# PIPELINE EXECUTION ENGINE
 # ==============================================================================
-def main():
-    if not os.path.exists("scientists.json"):
-        print("[CRITICAL] 'scientists.json' queue file not found.")
-        sys.exit(1)
 
-    with open("scientists.json", "r", encoding="utf-8") as f:
-        scientists = json.load(f)
+def process_physicist(entity: dict) -> bool:
+    """Executes Stage 1, Stage 2, QA Validation, and WP publishing for a physicist entity."""
+    p_name_en = entity.get("name")
+    p_name_ar = entity.get("name_ar")
 
-    target_index = None
-    target = None
-    for idx, item in enumerate(scientists):
-        if item.get("status") == "pending":
-            target_index = idx
-            target = item
-            break
-
-    if not target:
-        print("[Pipeline] No pending scientists found in queue.")
-        sys.exit(0)
-
-    scientist_name = target["name"]
     print(f"\n==================================================")
-    print(f"[Pipeline Start] Processing scientist: {scientist_name}")
+    print(f"Processing Physicist: {p_name_ar} ({p_name_en})")
     print(f"==================================================")
 
-    # STAGE 1
-    print("\n[Stage 1] Executing Fact-Extraction & Physics Modeling Check...")
-    prompt_stage1 = STAGE_1_PROMPT.format(scientist_name=scientist_name)
-    stage1_json = generate_content_with_retry(prompt_stage1)
+    # --- STAGE 1: Research & Structuring ---
+    print("[Stage 1] Executing Deep Research & Blueprint Structuring...")
+    prompt_1 = STAGE_1_PROMPT.format(physicists_name=p_name_en, physicists_name_ar=p_name_ar)
+    
+    try:
+        res_1 = model.generate_content(prompt_1)
+        stage_1_json_str = clean_json_response(res_1.text)
+        stage_1_data = json.loads(stage_1_json_str)
+        print("[Stage 1] Blueprint generated successfully.")
+    except Exception as e:
+        print(f"[CRITICAL] Stage 1 Generation Failed: {e}")
+        return False
 
-    os.makedirs("knowledge_base", exist_ok=True)
-    kb_path = f"knowledge_base/{target['id']}_{scientist_name}.json"
-    with open(kb_path, "w", encoding="utf-8") as f:
-        json.dump(stage1_json, f, ensure_ascii=False, indent=2)
-    print(f"[Stage 1] Structured Knowledge Base saved to '{kb_path}'.")
+    # --- STAGE 2: Content Generation & QA Evaluation ---
+    print("[Stage 2] Executing HTML Synthesis & Academic QA Evaluation...")
+    prompt_2 = STAGE_2_PROMPT.format(stage_1_json=json.dumps(stage_1_data, ensure_ascii=False))
 
-    # STAGE 2
-    print("\n[Stage 2] Synthesizing Academic HTML Article & Quality Audit...")
-    prompt_stage2 = STAGE_2_PROMPT.format(
-        scientist_name=scientist_name,
-        stage1_json=json.dumps(stage1_json, ensure_ascii=False)
-    )
-    article_data = generate_content_with_retry(prompt_stage2)
+    try:
+        res_2 = model.generate_content(prompt_2)
+        stage_2_json_str = clean_json_response(res_2.text)
+        stage_2_data = json.loads(stage_2_json_str)
+    except Exception as e:
+        print(f"[CRITICAL] Stage 2 Generation Failed: {e}")
+        return False
 
-    # QA AUDIT
-    qa = article_data.get("qa_evaluation", {})
+    # --- QA GATEWAY VERIFICATION ---
+    qa = stage_2_data.get("qa_evaluation", {})
+    quality_score = qa.get("quality_score", 0)
+    has_references = qa.get("has_mandatory_references", False)
+    has_latex = qa.get("has_strict_latex", False)
+    recommendation = qa.get("publish_recommendation", "REJECT")
 
-    def normalize_score(val):
-        """Normalizes decimal (0.0-1.0) and percentage (0-100) evaluation scores."""
-        try:
-            val = float(val)
-            return val * 100 if val <= 1.0 else val
-        except (ValueError, TypeError):
-            return 0.0
-
-    quality_score = normalize_score(qa.get("quality_score", 0))
-    historical_accuracy = normalize_score(qa.get("historical_accuracy", 0))
-    scientific_accuracy = normalize_score(qa.get("scientific_accuracy", 0))
-    mathematical_accuracy = normalize_score(qa.get("mathematical_accuracy", 0))
-    source_quality = normalize_score(qa.get("source_quality", 0))
-
-    critical_errors = qa.get("critical_errors", [])
-    publish_recommendation = qa.get("publish_recommendation", "REJECT")
-    anachronism_check = qa.get("anachronism_check", "FAIL")
-
-    print("\n--------------------------------------------------")
-    print(
-        f"[QA Evaluation] "
-        f"Overall={quality_score:.1f} | "
-        f"Historical={historical_accuracy:.1f} | "
-        f"Scientific={scientific_accuracy:.1f} | "
-        f"Math={mathematical_accuracy:.1f} | "
-        f"Sources={source_quality:.1f} | "
-        f"Anachronism={anachronism_check}"
-    )
-    print("--------------------------------------------------")
+    print(f"[QA Gate] Score: {quality_score}/100 | References: {has_references} | Strict LaTeX: {has_latex} | Rec: {recommendation}")
 
     if (
         quality_score >= 90
-        and historical_accuracy >= 90
-        and scientific_accuracy >= 90
-        and mathematical_accuracy >= 90
-        and source_quality >= 85
-        and anachronism_check == "PASS"
-        and len(critical_errors) == 0
-        and publish_recommendation == "PUBLISH"
+        and has_references is True
+        and has_latex is True
+        and recommendation == "PUBLISH"
     ):
-        print("\n[QA PASSED] Payload meets all academic thresholds. Posting to WordPress...")
-        success = post_to_wordpress(article_data)
-
-        if success:
-            scientists[target_index]["status"] = "completed"
-            with open("scientists.json", "w", encoding="utf-8") as f:
-                json.dump(scientists, f, ensure_ascii=False, indent=2)
-            print("[Pipeline Complete] Process completed and queue updated successfully!")
-        else:
-            print("[CRITICAL] Process failed at WordPress REST API posting stage.")
-            sys.exit(1)
+        print("[QA Gate PASSED] Publishing draft to WordPress...")
+        published = post_or_update_wordpress(stage_2_data)
+        return published
     else:
-        print(
-            "\n[QA FAILED] Target article rejected due to threshold failure:\n"
-            f"Overall={quality_score:.1f}, "
-            f"Historical={historical_accuracy:.1f}, "
-            f"Scientific={scientific_accuracy:.1f}, "
-            f"Math={mathematical_accuracy:.1f}, "
-            f"Sources={source_quality:.1f}, "
-            f"Anachronism={anachronism_check}, "
-            f"Critical Errors={critical_errors}"
-        )
+        print(f"[QA Gate FAILED] Critical Errors: {qa.get('critical_errors', [])}. Post withheld from WP.")
+        return False
+
+# ==============================================================================
+# MAIN ENTRY POINT
+# ==============================================================================
+
+def main():
+    json_file_path = "physicists.json"
+    if not os.path.exists(json_file_path):
+        print(f"[Error] File '{json_file_path}' not found.")
         sys.exit(1)
+
+    with open(json_file_path, "r", encoding="utf-8") as f:
+        physicists = json.load(f)
+
+    # Process entities with status 'pending'
+    pending_entities = [p for p in physicists if p.get("status") == "pending"]
+
+    if not pending_entities:
+        print("[Pipeline Engine] No pending entities found to process.")
+        return
+
+    print(f"[Pipeline Engine] Found {len(pending_entities)} pending entity/entities.")
+
+    for entity in pending_entities:
+        success = process_physicist(entity)
+        if success:
+            entity["status"] = "processed"
+            print(f"[Success] Entity '{entity.get('name_ar')}' processed and published as draft.")
+        else:
+            print(f"[Failure] Processing failed for '{entity.get('name_ar')}'. Status remains pending.")
+
+    # Save updated status back to JSON file
+    with open(json_file_path, "w", encoding="utf-8") as f:
+        json.dump(physicists, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
     main()

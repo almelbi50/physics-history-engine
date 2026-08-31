@@ -289,14 +289,29 @@ def process_physicist(entity: dict) -> bool:
         return False
 
 # ==============================================================================
-# MAIN ENTRY POINT
+# MAIN ENTRY POINT (WITH DYNAMIC FILE LOCALIZATION)
 # ==============================================================================
 
 def main():
-    json_file_path = "physicists.json"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    json_file_path = os.path.join(BASE_DIR, "physicists.json")
+
+    # Dynamic search fallback to mitigate case-sensitivity and naming mismatches on Linux runners
     if not os.path.exists(json_file_path):
-        print(f"[Error] File '{json_file_path}' not found.")
-        sys.exit(1)
+        print(f"[Warning] Exact file 'physicists.json' not found at: {json_file_path}")
+        print(f"[Debug] Files present in directory: {os.listdir(BASE_DIR)}")
+
+        candidate_files = [
+            f for f in os.listdir(BASE_DIR)
+            if f.lower().endswith('.json') and 'physic' in f.lower()
+        ]
+
+        if candidate_files:
+            json_file_path = os.path.join(BASE_DIR, candidate_files[0])
+            print(f"[Auto-Fix] Dynamically localized JSON dataset: '{candidate_files[0]}'")
+        else:
+            print(f"[CRITICAL ERROR] No valid physicists JSON dataset detected in root directory.")
+            sys.exit(1)
 
     with open(json_file_path, "r", encoding="utf-8") as f:
         physicists = json.load(f)
@@ -318,7 +333,7 @@ def main():
         else:
             print(f"[Failure] Processing failed for '{entity.get('name_ar')}'. Status remains pending.")
 
-    # Save updated status back to JSON file
+    # Save updated status back to the resolved JSON path
     with open(json_file_path, "w", encoding="utf-8") as f:
         json.dump(physicists, f, ensure_ascii=False, indent=2)
 

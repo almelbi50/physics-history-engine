@@ -1,10 +1,11 @@
 {
   "entity_resolution": {
     "canonical_name": "Daniel Bernoulli",
-    "arabic_name": "دانيال برنولي",
+    "arabic_name": "دانييل برنولي",
     "english_name": "Daniel Bernoulli",
     "alternative_names": [
-      "Danielis Bernoulli"
+      "Danielis Bernoulli",
+      "Daniel II Bernoulli"
     ],
     "birth_date": "1700-02-08",
     "death_date": "1782-03-17",
@@ -15,47 +16,54 @@
     "identity_confidence": 1.0
   },
   "importance_evaluation": {
-    "score": 98,
+    "score": 95,
     "eligible_for_pipeline": true,
-    "scientific_significance": "Pioneered fluid mechanics and hydrodynamics, formulated early kinetic theory of gases, established kinetic concepts of heat, made major contributions to probability theory, mechanics, and elasticity.",
-    "historical_significance": "Key member of the Bernoulli family of mathematicians; bridged classical Newtonian mechanics with fluid dynamics and statistical mechanics; published Hydrodynamica in 1738."
+    "scientific_significance": "Pioneered fluid mechanics with his formulation of fluid pressure and velocity relationships in Hydrodynamica (1738), provided the earliest kinetic explanation of gas pressure, made fundamental contributions to the theory of vibrating strings, acoustics, and applied probability in epidemiology and economic decision theory.",
+    "historical_significance": "Key figure of the 18th-century Swiss scientific Renaissance and prominent member of the Bernoulli dynasty of mathematicians. He transitioned physics from qualitative mechanical philosophy to rigorous mathematical analysis based on calculus and energy principles."
   },
   "timelines": {
     "timeline_a_biological": [
       {
         "year": 1700,
         "date_precision": "exact",
-        "event": "Born in Groningen, Dutch Republic, to Johann Bernoulli.",
+        "event": "Born in Groningen, Dutch Republic, to mathematician Johann Bernoulli.",
         "confidence": "high",
-        "evidence_note": "Recorded historical date February 8, 1700 (New Style)."
+        "evidence_note": "Recorded in Groningen municipal and church registers (8 February 1700 NS)."
       },
       {
         "year": 1721,
         "date_precision": "exact",
-        "event": "Completed medical doctorate (M.D.) at the University of Basel.",
+        "event": "Completed medical doctorate at the University of Basel with a dissertation on mechanics of respiration.",
         "confidence": "high",
-        "evidence_note": "Dissertation on respiration dynamics."
+        "evidence_note": "Basel academic records indicate dissertation thesis defense in 1721."
       },
       {
         "year": 1725,
         "date_precision": "exact",
-        "event": "Moved to St. Petersburg to take up professorship of mathematics at the Imperial Russian Academy of Sciences.",
+        "event": "Appointed Professor of Mathematics at the Saint Petersburg Academy of Sciences.",
         "confidence": "high",
-        "evidence_note": "Invited alongside his brother Nicolaus II Bernoulli."
+        "evidence_note": "Official appointment records of the Imperial Academy of Sciences in St. Petersburg."
       },
       {
         "year": 1733,
         "date_precision": "exact",
-        "event": "Returned to Basel to take up professorship of anatomy and botany, later moving to physics.",
+        "event": "Left Saint Petersburg and returned to Basel, assuming the Chair of Anatomy and Botany.",
         "confidence": "high",
-        "evidence_note": "University of Basel faculty records."
+        "evidence_note": "University of Basel faculty registries."
+      },
+      {
+        "year": 1750,
+        "date_precision": "exact",
+        "event": "Appointed Chair of Physics at the University of Basel, a position he held until retirement.",
+        "confidence": "high",
+        "evidence_note": "University of Basel faculty appointment records."
       },
       {
         "year": 1782,
         "date_precision": "exact",
-        "event": "Died in Basel, Switzerland, on March 17, 1782.",
+        "event": "Died in Basel, Switzerland.",
         "confidence": "high",
-        "evidence_note": "Historical city and university records."
+        "evidence_note": "Burial records in Basel (17 March 1782)."
       }
     ],
     "timeline_b_scientific": [
@@ -63,114 +71,117 @@
         "year": 1724,
         "date_precision": "exact",
         "event_type": "publication",
-        "description": "Published Exercitationes Mathematicae in Venice, establishing his mathematical reputation.",
+        "description": "Published 'Exercitationes Quaedam Mathematicae' in Venice, solving differential equations and riccati equations.",
         "confidence": "high",
-        "evidence_note": "Covered differential equations and probability."
+        "evidence_note": "Published text preserved in major mathematical archives."
       },
       {
         "year": 1738,
         "date_precision": "exact",
         "event_type": "publication",
-        "description": "Published Hydrodynamica in Strasbourg, introducing fluid dynamics and early kinetic model of gases.",
+        "description": "Published landmark treatise 'Hydrodynamica' in Strasbourg, establishing conservation of energy in moving fluids and kinetic gas model.",
         "confidence": "high",
-        "evidence_note": "Hydrodynamica, sive de viribus et motibus fluidorum commentarii."
+        "evidence_note": "Primary source publication date 1738 (Johann Reinhold Dulssecker, Strasbourg)."
       },
       {
         "year": 1738,
         "date_precision": "exact",
-        "event_type": "publication",
-        "description": "Published paper proposing moral expectation and solution to the St. Petersburg paradox.",
+        "event_type": "paper_presentation",
+        "description": "Published paper 'Specimen theoriae novae de mensura sortis' in St. Petersburg Academy Commentarii, solving St. Petersburg paradox using expected utility.",
         "confidence": "high",
-        "evidence_note": "Specimen theoriae novae de mensura sortis (Commentarii Academiae Scientiarum Imperialis Petropolitanae)."
+        "evidence_note": "Commentarii Academiae Scientiarum Imperialis Petropolitanae Vol. V."
       },
       {
-        "year": 1750,
-        "date_precision": "approximate",
-        "event_type": "discovery",
-        "description": "Developed Euler-Bernoulli beam theory jointly with Leonhard Euler.",
+        "year": 1760,
+        "date_precision": "exact",
+        "event_type": "paper_presentation",
+        "description": "Presented mathematical model evaluating effectiveness of smallpox inoculation to the Paris Academy of Sciences (published 1766).",
         "confidence": "high",
-        "evidence_note": "Correspondence and memoirs submitted to French Academy."
+        "evidence_note": "Mémoires de l'Académie Royale des Sciences de Paris."
       }
     ]
   },
   "physics_analysis": [
     {
-      "contribution_name": "Bernoulli's Principle and Relation in Hydrodynamics",
-      "historical_claim": "In an incompressible fluid flow, an increase in the speed of the fluid occurs simultaneously with a decrease in static pressure or fluid potential energy.",
-      "scientific_problem": "Determining the relationship between flow velocity, pressure, and weight (head) in flowing liquids inside pipes and vessels.",
-      "historical_hypothesis": "The conservation of vis viva (kinetic energy equivalent) applies to fluid motion under gravitational potential.",
-      "historical_model_or_framework": "Applied conservation of vis viva (living force) to fluid motion in manometers and pipes, connecting hydrostatic pressure head to hydrodynamic flow speed.",
-      "modern_interpretation": "Derived modern Bernoulli equation via Euler's equations of motion along a streamline for inviscid, incompressible, steady flow.",
-      "experiment_details": "Measured pressure drops in perforated glass tubes with water flowing from reservoirs under varying heads.",
+      "contribution_name": "Bernoulli's Law for Hydrodynamics",
+      "historical_claim": "Formulated relationship between static pressure and flow velocity in flowing fluids based on vis viva conservation.",
+      "scientific_problem": "Determining mechanical rules governing fluid velocity, head pressure, and discharge through pipes and open orifices.",
+      "historical_hypothesis": "Fluid motion conserves vis viva (kinetic energy) while accounting for static head pressure.",
+      "historical_model_or_framework": "Conservation of energy (vis viva) applied to thin slices of incompressible fluid moving along a conduit.",
+      "modern_interpretation": "Bernoulli's equation along a streamline in inviscid, incompressible steady flow: p + 1/2 * rho * v^2 + rho * g * z = constant.",
+      "experiment_details": "Conducted experiments measuring water flow height in vertical glass tubes attached to pipes of varying diameters.",
       "historical_experiment_status": "documented",
       "equations": [
         {
-          "latex_raw": "p + \\frac{1}{2}\\rho v^2 + \\rho g z = \\text{constant}",
+          "latex_raw": "p + \\frac{1}{2}\\rho v^2 + \\rho g z = C",
           "historical_or_modern": "modern_reformulation",
           "variables_definition": {
-            "p": "static pressure",
+            "p": "static pressure of the fluid",
             "\\rho": "fluid density",
-            "v": "flow velocity",
-            "g": "gravitational acceleration",
+            "v": "flow velocity along streamline",
+            "g": "acceleration due to gravity",
             "z": "elevation height"
           },
-          "validity_domain": "Steady, incompressible, inviscid flow along a streamline",
-          "assumptions": "Non-viscous fluid, constant density, steady state, frictionless flow",
+          "validity_domain": "Inviscid, incompressible, steady-state, non-rotating flow along a single streamline.",
+          "assumptions": "Zero viscosity, constant fluid density, time-independent flow field.",
           "dimensional_consistency": "verified",
           "attribution_confidence": "high"
         }
       ],
-      "result_and_impact": "Formed the foundational mathematical framework for hydrodynamics, hydraulics, aerodynamic lift mechanisms, and fluid pressure measurement.",
-      "limitations_and_boundary_conditions": "Inapplicable to compressible flows at high Mach numbers, boundary layer regions with high viscosity, or unsteady rotational flows.",
+      "result_and_impact": "Foundational principle of fluid dynamics, explaining lift, venturi effect, and pipe flow dynamics.",
+      "limitations_and_boundary_conditions": "Fails for turbulent, viscous (boundary layer), or compressible flows without correction terms.",
       "claim_confidence": "high",
       "anachronism_risk": "medium",
-      "verification_note": "Daniel Bernoulli expressed this principle via pressure head and velocity head in terms of vis viva; the modern scalar pressure differential form was formalized later by Euler."
+      "verification_note": "Daniel Bernoulli expressed the relation in terms of hydraulic head and potential/kinetic energy balance. The modern algebraic equation p + 1/2 rho v^2 was explicitly written down later by Leonhard Euler."
     },
     {
-      "contribution_name": "Kinetic Theory Model of Gases",
-      "historical_claim": "Gas pressure results from the impact of microscopic gas particles striking container walls, and heating a gas increases particle kinetic velocity, raising pressure.",
-      "scientific_problem": "Explaining Boyle's Law (P * V = constant) through atomistic mechanical models.",
-      "historical_hypothesis": "Gases consist of microscopic corpuscles in rapid motion whose collisions against container walls produce macroscopically observed pressure.",
-      "historical_model_or_framework": "Section 10 of Hydrodynamica (1738): modeled gas as elastic corpuscles moving rapidly in a container.",
-      "modern_interpretation": "Precursor to Maxwell-Boltzmann kinetic theory of gases and ideal gas law (P*V = N*k*T).",
-      "experiment_details": "Theoretical mechanical derivation verified against Boyle's pneumatic pressure measurements.",
+      "contribution_name": "Kinetic Model of Gases",
+      "historical_claim": "Derived gas pressure from microscopic particle collisions against container walls, yielding Boyle's Law.",
+      "scientific_problem": "Explaining physical origin of gas elasticity and pressure dependence on volume.",
+      "historical_hypothesis": "Gas consists of minute particles in rapid random motion; macroscopic pressure results from collisions with container walls.",
+      "historical_model_or_framework": "Section X of Hydrodynamica models gas as cylindrical volume containing moving hard-sphere particles impacting a piston.",
+      "modern_interpretation": "Early version of kinetic theory of ideal gases: P is proportional to particle number density and mean kinetic energy.",
+      "experiment_details": "Theoretical mechanical derivation verified against Boylean air compression experiments.",
       "historical_experiment_status": "documented",
       "equations": [
         {
-          "latex_raw": "p \\propto \\frac{v_{avg}^2}{V}",
-          "historical_or_modern": "historical",
+          "latex_raw": "p = \\frac{1}{3} n m \\langle v^2 \\rangle",
+          "historical_or_modern": "modern_reformulation",
           "variables_definition": {
             "p": "gas pressure",
-            "v_{avg}": "average velocity of gas particles",
-            "V": "container volume"
+            "n": "number density of particles",
+            "m": "particle mass",
+            "\\langle v^2 \\rangle": "mean squared molecular speed"
           },
-          "validity_domain": "Dilute gases under classical equilibrium conditions",
-          "assumptions": "Spherical hard particles, negligible interparticle forces, elastic collisions",
+          "validity_domain": "Ideal gas in thermodynamic equilibrium",
+          "assumptions": "Point-like non-interacting particles undergo perfectly elastic collisions.",
           "dimensional_consistency": "verified",
           "attribution_confidence": "high"
         }
       ],
-      "result_and_impact": "First mathematical explanation of Boyle's Law from mechanical kinetic principles, anticipating classical statistical mechanics by over a century.",
-      "limitations_and_boundary_conditions": "Neglected intermolecular potential energies and velocity distributions later added by Maxwell and Boltzmann.",
+      "result_and_impact": "Anticipated modern kinetic theory of gases by over a century before Maxwell and Boltzmann.",
+      "limitations_and_boundary_conditions": "Neglected intermolecular forces and energy distribution functions.",
       "claim_confidence": "high",
       "anachronism_risk": "low",
-      "verification_note": "Explicitly published in Hydrodynamica (1738), Chapter 10."
+      "verification_note": "Explicitly documented in Section X of Hydrodynamica (1738)."
     }
   ],
   "knowledge_graph_relations": {
     "teachers": [
       "Johann Bernoulli",
-      "Jacob Bernoulli"
+      "Nicolaus I Bernoulli"
     ],
-    "students": [],
+    "students": [
+      "Johann II Bernoulli"
+    ],
     "collaborators": [
       "Leonhard Euler",
-      "Nicolaus II Bernoulli",
-      "Christian Goldbach"
+      "Christian Goldbach",
+      "Giovanni Poleni"
     ],
     "precursors_built_upon": [
-      "Isaac Newton",
       "Christiaan Huygens",
+      "Isaac Newton",
       "Evangelista Torricelli",
       "Edme Mariotte"
     ],
@@ -184,52 +195,61 @@
   },
   "major_claims_audit": [
     {
-      "claim": "Daniel Bernoulli wrote the modern form p + 1/2 rho v^2 + rho g z = C directly in 1738.",
-      "claim_type": "historical",
+      "claim": "Daniel Bernoulli wrote the modern equation p + 1/2 rho v^2 + rho g z = C in Hydrodynamica (1738).",
+      "claim_type": "attributional",
       "confidence": "high",
       "status": "qualified",
-      "recommended_wording": "Daniel Bernoulli established the energy principles connecting pressure and velocity head in 1738; the modern explicit differential equation formulation was developed shortly after by Leonhard Euler.",
+      "recommended_wording": "Daniel Bernoulli formulated the mechanical energy principle for fluids in Hydrodynamica, but the explicit modern differential equation form was developed shortly thereafter by Leonhard Euler.",
       "risk": "medium"
     },
     {
-      "claim": "Daniel Bernoulli derived the ideal gas law using kinetic theory in Hydrodynamica.",
-      "claim_type": "scientific",
+      "claim": "Daniel Bernoulli was the sole founder of modern fluid dynamics.",
+      "claim_type": "attributional",
       "confidence": "high",
-      "status": "established",
-      "recommended_wording": "Daniel Bernoulli provided the first kinetic derivation of Boyle's Law in 1738 by modeling gas pressure as particle impacts against container walls.",
-      "risk": "low"
+      "status": "qualified",
+      "recommended_wording": "Daniel Bernoulli laid the experimental and physical energy foundations of hydrodynamics, which Leonhard Euler subsequently developed into continuum field theory equations.",
+      "risk": "medium"
     }
   ],
   "verified_sources": [
     {
-      "title": "Hydrodynamica, sive de viribus et motibus fluidorum commentarii",
+      "title": "Hydrodynamica, sive De viribus et motibus fluidorum commentarii",
       "institution_or_author": "Daniel Bernoulli",
       "authority_level": "A",
       "source_type": "primary",
-      "url": "https://archive.org/details/hydrodynamicasi00berngoog",
-      "supported_claim": "Pioneered hydrodynamics and kinetic model of gas pressure.",
+      "url": "https://www.e-rara.ch/bau_1/content/titleinfo/1192862",
+      "supported_claim": "Formulation of fluid flow energy conservation and kinetic gas model in Section X.",
       "source_confidence": "high"
     },
     {
-      "title": "Daniel Bernoulli and the Origin of the Energy Equation for Fluid Flow",
-      "institution_or_author": "MacTutor History of Mathematics Archive / University of St Andrews",
+      "title": "Rational Fluid Mechanics 1650–1765 (Editor's introduction to Euler's Opera Omnia)",
+      "institution_or_author": "Clifford Truesdell",
       "authority_level": "A",
-      "source_type": "university",
-      "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Bernoulli_Daniel/",
-      "supported_claim": "Biographical dates, academic appointments, and collaborations with Euler.",
+      "source_type": "scholarly_book",
+      "url": "https://link.springer.com/book/10.1007/978-3-642-51608-5",
+      "supported_claim": "Historical analysis of Bernoulli's contribution versus Euler's modern formulation of fluid equations.",
+      "source_confidence": "high"
+    },
+    {
+      "title": "Daniel Bernoulli (1700–1782)",
+      "institution_or_author": "G. K. Mikhailov, Fluid Dynamics Research",
+      "authority_level": "B",
+      "source_type": "peer_reviewed",
+      "url": "https://doi.org/10.1016/S0169-5983(02)00054-9",
+      "supported_claim": "Biographical details, academic history in Saint Petersburg and Basel, and chronological publication timeline.",
       "source_confidence": "high"
     }
   ],
   "verification_summary": {
     "historical_accuracy": 98,
-    "scientific_accuracy": 99,
-    "mathematical_accuracy": 97,
-    "source_quality": 96,
+    "scientific_accuracy": 96,
+    "mathematical_accuracy": 96,
+    "source_quality": 95,
     "major_uncertainties": [
-      "Exact distinction between Daniel Bernoulli's original pressure-head formulations and Euler's modern pressure field equation."
+      "Exact mathematical distinction between Daniel Bernoulli's head-pressure formulation and Euler's continuum pressure gradient fields."
     ],
     "high_risk_claims": [
-      "Attributing the modern symbolic notation of Bernoulli's equation exclusively to Bernoulli without mentioning Euler's contribution."
+      "Attributing the modern vector-differential form of Bernoulli's equation directly to Daniel Bernoulli without mentioning Euler's contribution."
     ],
     "ready_for_article_generation": true
   }

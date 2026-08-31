@@ -289,29 +289,39 @@ def process_physicist(entity: dict) -> bool:
         return False
 
 # ==============================================================================
-# MAIN ENTRY POINT (WITH DYNAMIC FILE LOCALIZATION)
+# MAIN ENTRY POINT (ROBUST FILE LOCALIZATION)
 # ==============================================================================
 
 def main():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    json_file_path = os.path.join(BASE_DIR, "physicists.json")
+    
+    # Priority list of possible dataset names
+    default_candidates = ["physicists.json", "scientists.json"]
+    json_file_path = None
 
-    # Dynamic search fallback to mitigate case-sensitivity and naming mismatches on Linux runners
-    if not os.path.exists(json_file_path):
-        print(f"[Warning] Exact file 'physicists.json' not found at: {json_file_path}")
+    for candidate in default_candidates:
+        p = os.path.join(BASE_DIR, candidate)
+        if os.path.exists(p):
+            json_file_path = p
+            break
+
+    # Broad search fallback across directory if exact matches fail
+    if not json_file_path:
+        print(f"[Warning] Exact files {default_candidates} not found.")
         print(f"[Debug] Files present in directory: {os.listdir(BASE_DIR)}")
 
-        candidate_files = [
+        fallback_files = [
             f for f in os.listdir(BASE_DIR)
-            if f.lower().endswith('.json') and 'physic' in f.lower()
+            if f.lower().endswith('.json') and any(k in f.lower() for k in ['physic', 'scient', 'data'])
         ]
 
-        if candidate_files:
-            json_file_path = os.path.join(BASE_DIR, candidate_files[0])
-            print(f"[Auto-Fix] Dynamically localized JSON dataset: '{candidate_files[0]}'")
+        if fallback_files:
+            json_file_path = os.path.join(BASE_DIR, fallback_files[0])
         else:
-            print(f"[CRITICAL ERROR] No valid physicists JSON dataset detected in root directory.")
+            print(f"[CRITICAL ERROR] No valid dataset JSON file detected in root directory.")
             sys.exit(1)
+
+    print(f"[Pipeline Engine] Successfully localized dataset: '{os.path.basename(json_file_path)}'")
 
     with open(json_file_path, "r", encoding="utf-8") as f:
         physicists = json.load(f)
@@ -333,7 +343,7 @@ def main():
         else:
             print(f"[Failure] Processing failed for '{entity.get('name_ar')}'. Status remains pending.")
 
-    # Save updated status back to the resolved JSON path
+    # Save updated status back to resolved JSON path
     with open(json_file_path, "w", encoding="utf-8") as f:
         json.dump(physicists, f, ensure_ascii=False, indent=2)
 

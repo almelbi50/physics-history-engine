@@ -1,0 +1,366 @@
+  [
+  {
+    "id": "001",
+    "name": "Ibn al-Haytham",
+    "arabic_name": "الحسن ابن الهيثم",
+    "period": "Islamic Golden Age",
+    "status": "completed"
+  },
+  {
+    "id": "002",
+    "name": "Al-Biruni",
+    "arabic_name": "أبو الريحان البيروني",
+    "period": "Islamic Golden Age",
+    "status": "completed"
+  },
+  {
+    "id": "003",
+    "name": "Galileo Galilei",
+    "arabic_name": "غاليلو غاليلي",
+    "period": "Scientific Revolution",
+    "status": "completed"
+  },
+  {
+    "id": "004",
+    "name": "Johannes Kepler",
+    "arabic_name": "يوهانس كبلر",
+    "period": "Scientific Revolution",
+    "status": "completed"
+  },
+  {
+    "id": "005",
+    "name": "Christiaan Huygens",
+    "arabic_name": "كريستيان هويغنز",
+    "period": "Classical Mechanics & Optics",
+    "status": "completed"
+  },
+  {
+    "id": "006",
+    "name": "Isaac Newton",
+    "arabic_name": "إسحاق نيوتن",
+    "period": "Classical Mechanics & Optics",
+    "status": "completed"
+  },
+  {
+    "id": "007",
+    "name": "Daniel Bernoulli",
+    "arabic_name": "دانييل برنولي",
+    "period": "Fluid Dynamics",
+    "status": "completed"
+  },
+  {
+    "id": "008",
+    "name": "Charles-Augustin de Coulomb",
+    "arabic_name": "شارل أوغسطين دي كولوم",
+    "period": "Electromagnetism",
+    "status": "pending"
+  },
+  {
+    "id": "009",
+    "name": "Thomas Young",
+    "arabic_name": "توماس يونغ",
+    "period": "Optics & Wave Theory",
+    "status": "pending"
+  },
+  {
+    "id": "010",
+    "name": "Michael Faraday",
+    "arabic_name": "مايكل فاراداي",
+    "period": "Electromagnetism",
+    "status": "pending"
+  },
+  {
+    "id": "011",
+    "name": "Sadi Carnot",
+    "arabic_name": "سادي كارنو",
+    "period": "Thermodynamics",
+    "status": "pending"
+  },
+  {
+    "id": "012",
+    "name": "James Prescott Joule",
+    "arabic_name": "جيمس بريسكوت جول",
+    "period": "Thermodynamics",
+    "status": "pending"
+  },
+  {
+    "id": "013",
+    "name": "James Clerk Maxwell",
+    "arabic_name": "جيمس كليرك ماكسويل",
+    "period": "Electromagnetism",
+    "status": "pending"
+  },
+  {
+    "id": "014",
+    "name": "Ludwig Boltzmann",
+    "arabic_name": "لودفيغ بولتزمان",
+    "period": "Statistical Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "015",
+    "name": "Heinrich Hertz",
+    "arabic_name": "هاينريش هرتز",
+    "period": "Electromagnetic Waves",
+    "status": "pending"
+  },
+  {
+    "id": "016",
+    "name": "Wilhelm Röntgen",
+    "arabic_name": "فيلهلم رونتغن",
+    "period": "Atomic & Nuclear Physics",
+    "status": "pending"
+  },
+  {
+    "id": "017",
+    "name": "Max Planck",
+    "arabic_name": "ماكس بلانك",
+    "period": "Quantum Physics",
+    "status": "pending"
+  },
+  {
+    "id": "018",
+    "name": "Marie Curie",
+    "arabic_name": "ماري كوري",
+    "period": "Nuclear Physics",
+    "status": "pending"
+  },
+  {
+    "id": "019",
+    "name": "Ernest Rutherford",
+    "arabic_name": "إرنست رذرفورد",
+    "period": "Nuclear Physics",
+    "status": "pending"
+  },
+  {
+    "id": "020",
+    "name": "Albert Einstein",
+    "arabic_name": "ألبرت أينشتاين",
+    "period": "Relativity & Quantum Theory",
+    "status": "pending"
+  },
+  {
+    "id": "021",
+    "name": "Niels Bohr",
+    "arabic_name": "نيلز بور",
+    "period": "Quantum Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "022",
+    "name": "Louis de Broglie",
+    "arabic_name": "لوي دي بروي",
+    "period": "Quantum Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "023",
+    "name": "Werner Heisenberg",
+    "arabic_name": "فيرنر هايزنبرغ",
+    "period": "Quantum Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "024",
+    "name": "Erwin Schrödinger",
+    "arabic_name": "إروين شرودنغر",
+    "period": "Quantum Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "025",
+    "name": "Paul Dirac",
+    "arabic_name": "بول ديراك",
+    "period": "Quantum Field Theory",
+    "status": "pending"
+  },
+  {
+    "id": "026",
+    "name": "Enrico Fermi",
+    "arabic_name": "إنريكو فيرمي",
+    "period": "Nuclear & Particle Physics",
+    "status": "pending"
+  },
+  {
+    "id": "027",
+    "name": "Richard Feynman",
+    "arabic_name": "ريتشارد فاينمان",
+    "period": "Quantum Electrodynamics",
+    "status": "pending"
+  },
+  {
+    "id": "028",
+    "name": "John Bardeen",
+    "arabic_name": "جون باردين",
+    "period": "Condensed Matter Physics",
+    "status": "pending"
+  },
+  {
+    "id": "029",
+    "name": "Ibn Sina (Avicenna)",
+    "arabic_name": "ابن سينا",
+    "period": "Islamic Golden Age",
+    "status": "pending"
+  },
+  {
+    "id": "030",
+    "name": "Al-Khwarizmi",
+    "arabic_name": "الخوارزمي",
+    "period": "Islamic Golden Age",
+    "status": "pending"
+  },
+  {
+    "id": "031",
+    "name": "Blaise Pascal",
+    "arabic_name": "بليز باسكال",
+    "period": "Scientific Revolution",
+    "status": "pending"
+  },
+  {
+    "id": "032",
+    "name": "Robert Hooke",
+    "arabic_name": "روبرت هوك",
+    "period": "Classical Mechanics & Optics",
+    "status": "pending"
+  },
+  {
+    "id": "033",
+    "name": "Robert Boyle",
+    "arabic_name": "روبرت بويل",
+    "period": "Fluid Dynamics",
+    "status": "pending"
+  },
+  {
+    "id": "034",
+    "name": "Alessandro Volta",
+    "arabic_name": "أليساندرو فولتا",
+    "period": "Electromagnetism",
+    "status": "pending"
+  },
+  {
+    "id": "035",
+    "name": "André-Marie Ampère",
+    "arabic_name": "أندريه ماري أمبير",
+    "period": "Electromagnetism",
+    "status": "pending"
+  },
+  {
+    "id": "036",
+    "name": "Georg Ohm",
+    "arabic_name": "جورج أوم",
+    "period": "Electromagnetism",
+    "status": "pending"
+  },
+  {
+    "id": "037",
+    "name": "William Thomson (Lord Kelvin)",
+    "arabic_name": "ويليام طومسون (اللورد كلفن)",
+    "period": "Thermodynamics",
+    "status": "pending"
+  },
+  {
+    "id": "038",
+    "name": "Hendrik Lorentz",
+    "arabic_name": "هندريك لورنتز",
+    "period": "Electromagnetic Waves",
+    "status": "pending"
+  },
+  {
+    "id": "039",
+    "name": "J.J. Thomson",
+    "arabic_name": "جيه جيه طومسون",
+    "period": "Atomic & Nuclear Physics",
+    "status": "pending"
+  },
+  {
+    "id": "040",
+    "name": "Lise Meitner",
+    "arabic_name": "ليزه مايتنر",
+    "period": "Nuclear Physics",
+    "status": "pending"
+  },
+  {
+    "id": "041",
+    "name": "James Chadwick",
+    "arabic_name": "جيمس تشادويك",
+    "period": "Nuclear Physics",
+    "status": "pending"
+  },
+  {
+    "id": "042",
+    "name": "Wolfgang Pauli",
+    "arabic_name": "فولفغانغ باولي",
+    "period": "Quantum Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "043",
+    "name": "Max Born",
+    "arabic_name": "ماكس بورن",
+    "period": "Quantum Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "044",
+    "name": "Satyendra Nath Bose",
+    "arabic_name": "ساتيندرا ناث بوز",
+    "period": "Quantum Mechanics",
+    "status": "pending"
+  },
+  {
+    "id": "045",
+    "name": "Chandrasekhara Venkata Raman",
+    "arabic_name": "تشاندراسيكارا فينكاتا رامان",
+    "period": "Optics & Spectroscopy",
+    "status": "pending"
+  },
+  {
+    "id": "046",
+    "name": "Subrahmanyan Chandrasekhar",
+    "arabic_name": "سوبراهمانيان شاندراسيخار",
+    "period": "Astrophysics",
+    "status": "pending"
+  },
+  {
+    "id": "047",
+    "name": "Lev Landau",
+    "arabic_name": "ليف لانداو",
+    "period": "Condensed Matter Physics",
+    "status": "pending"
+  },
+  {
+    "id": "048",
+    "name": "William Shockley",
+    "arabic_name": "ويليام شوكلي",
+    "period": "Condensed Matter Physics",
+    "status": "pending"
+  },
+  {
+    "id": "049",
+    "name": "Walter Brattain",
+    "arabic_name": "والتر براتين",
+    "period": "Condensed Matter Physics",
+    "status": "pending"
+  },
+  {
+    "id": "050",
+    "name": "Murray Gell-Mann",
+    "arabic_name": "موراي غيل-مان",
+    "period": "Particle Physics",
+    "status": "pending"
+  },
+  {
+    "id": "051",
+    "name": "Steven Weinberg",
+    "arabic_name": "ستيفن واينبرغ",
+    "period": "Particle Physics",
+    "status": "pending"
+  },
+  {
+    "id": "052",
+    "name": "Peter Higgs",
+    "arabic_name": "بيتر هيغز",
+    "period": "Particle Physics",
+    "status": "pending"
+  }
+]

@@ -39,12 +39,13 @@ Your task is to conduct deep, rigorous research and structure a factual blueprin
 Perform systematic validation across these structural dimensions:
 1. Exact transliterated Arabic primary name.
 2. Concise biographical timeline (Birth/Death/Institutional affiliations).
-3. Core scientific contributions (Laws, equations, empirical apparatus, physical constants).
-4. Academic and historical context.
-5. Primary and peer-reviewed sources (MANDATORY).
+3. Academic network, peer collaborations, mentors, and scientific disputes/debates.
+4. Core scientific contributions (Laws, equations, empirical apparatus, physical constants).
+5. Historical legacy, epistemological impact, paradigm shifts, and influence on subsequent physics.
+6. Primary and peer-reviewed sources (MANDATORY).
 
 STRICT MATHEMATICAL RULE FOR STAGE 1:
-All mathematical formulations and physical variables MUST strictly use standard LaTeX notation ($...$ or $$...$$).
+All mathematical formulations and physical variables MUST strictly use standard LaTeX notation ($...$ for inline or $$...$$ for block formulas).
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {{
@@ -53,7 +54,11 @@ You MUST respond strictly with a valid JSON object matching this schema:
   "lifespan": "string",
   "nationality": "string",
   "primary_fields": ["string"],
-  "biographical_summary": "string",
+  "academic_network": {{
+    "mentors_and_influences": ["string"],
+    "collaborators_and_peers": ["string"],
+    "scientific_disputes_and_debates": ["string"]
+  }},
   "major_discoveries": [
     {{
       "concept_ar": "string",
@@ -63,6 +68,10 @@ You MUST respond strictly with a valid JSON object matching this schema:
       "experimental_apparatus": "string"
     }}
   ],
+  "historical_legacy": {{
+    "paradigm_shifts": "string",
+    "influence_on_subsequent_physics": "string"
+  }},
   "verified_sources": [
     {{
       "title": "string",
@@ -85,19 +94,21 @@ Your goal is to write a comprehensive, publication-ready academic article in cle
 MANDATORY CONTENT WEIGHT & STRUCTURE (80% PHYSICS / 20% HISTORY)
 --------------------------------------------------
 1. H1 Main Title: Exact Arabic Name ONLY (e.g., "دانيال برنولي"). No extra subtitles, numbers, or descriptors.
-2. Introduction (~20% of content): Concise historical background and overall physical impact. Avoid lengthy biographical narratives.
+2. Academic Context, Scientific Network & Historical Legacy (~20% of content):
+   - Concise historical background.
+   - Academic network: Mentors, peer collaborations, and notable scientific debates/disputes.
+   - Historical legacy: Paradigm shifts and long-term impact on subsequent physical theories.
 3. Theoretical & Mathematical Foundations (~30% of content):
-   - Detailed physical principles.
-   - FULL mathematical derivations.
+   - Detailed physical principles and FULL mathematical derivations.
    - MANDATORY: ALL physical variables, constants, and equations MUST strictly use LaTeX formatting ($...$ for inline and $$...$$ for block formulas). Plain text math is STRICTLY FORBIDDEN.
 4. Experimental Apparatus & Laboratory Metrology (~25% of content):
-   - Detailed physical characterization of experimental setups, measurement procedures, and error analysis.
+   - Physical characterization of experimental setups, measurement procedures, calibration, and error analysis.
 5. Modern Laboratory & Technological Applications (~25% of content):
-   - Practical modern applications and how the concepts are implemented in university laboratory experiments.
+   - Practical modern applications and implementation in university laboratory physics experiments.
 6. References & Scientific Sources Section (MANDATORY):
-   - You MUST include a dedicated HTML table or structured list of all verified references from Stage 1 before the AI disclosure box.
+   - Dedicated HTML table or structured list of all verified references from Stage 1 before the AI disclosure box.
 7. AI Transparency Box:
-   - Include a clean HTML callout box stating that this article was synthesized via the Physics Pipeline Engine and reviewed academically for phy-lab.com.
+   - Clean HTML callout box stating article synthesis via Physics Pipeline Engine and academic review for phy-lab.com.
 
 --------------------------------------------------
 QUALITY CONTROL EVALUATION (QA)
@@ -165,9 +176,14 @@ def post_or_update_wordpress(article_data: dict) -> bool:
 
     categories = get_wordpress_category_id("physicists")
     sanitized_content = clean_html_latex(article_data["html_content"])
-    target_slug = article_data["seo"]["slug"]
+    
+    # Robust slug retrieval with fallback
+    target_slug = article_data.get("seo", {}).get("slug")
+    if not target_slug:
+        raw_title = article_data.get("post_title", "physicist")
+        target_slug = re.sub(r'\s+', '-', raw_title).lower()
 
-    # Search for existing post with the same slug to prevent duplicate URLs (e.g., -2, -3)
+    # Search for existing post with the same slug to prevent duplicate URLs
     search_endpoint = f"{WP_URL.rstrip('/')}/posts?slug={target_slug}&status=any"
     existing_post_id = None
 
@@ -184,7 +200,7 @@ def post_or_update_wordpress(article_data: dict) -> bool:
         "content": sanitized_content,
         "status": "draft",
         "slug": target_slug,
-        "excerpt": article_data["seo"]["meta_description"],
+        "excerpt": article_data.get("seo", {}).get("meta_description", ""),
         "categories": categories
     }
 
@@ -253,16 +269,16 @@ def process_physicist(entity: dict) -> bool:
     # --- QA GATEWAY VERIFICATION ---
     qa = stage_2_data.get("qa_evaluation", {})
     quality_score = qa.get("quality_score", 0)
-    has_references = qa.get("has_mandatory_references", False)
-    has_latex = qa.get("has_strict_latex", False)
+    has_references = str(qa.get("has_mandatory_references", False)).lower() == "true"
+    has_latex = str(qa.get("has_strict_latex", False)).lower() == "true"
     recommendation = qa.get("publish_recommendation", "REJECT")
 
     print(f"[QA Gate] Score: {quality_score}/100 | References: {has_references} | Strict LaTeX: {has_latex} | Rec: {recommendation}")
 
     if (
         quality_score >= 90
-        and has_references is True
-        and has_latex is True
+        and has_references
+        and has_latex
         and recommendation == "PUBLISH"
     ):
         print("[QA Gate PASSED] Publishing draft to WordPress...")

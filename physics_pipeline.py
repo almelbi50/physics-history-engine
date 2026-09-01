@@ -46,7 +46,9 @@ Perform systematic validation across these structural dimensions:
 6. Primary and peer-reviewed sources (MANDATORY).
 
 STRICT MATHEMATICAL RULE FOR STAGE 1:
-All mathematical formulations and physical variables MUST strictly use standard LaTeX notation ($...$ for inline or $$...$$ for block formulas).
+- All mathematical formulations and physical variables MUST strictly use standard MathJax/KaTeX LaTeX notation ($...$ for inline or $$...$$ for block formulas).
+- Do NOT use non-standard macros like \\implies. Use standard \\Rightarrow instead.
+- Ensure no whitespace inside dollar signs (e.g., use $R$ instead of $ R $).
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {{
@@ -97,19 +99,24 @@ MANDATORY CONTENT WEIGHT & STRUCTURE (80% PHYSICS / 20% HISTORY)
 1. H1 Main Title: Exact Arabic Name ONLY (e.g., "شارل أوغسطين دي كولوم"). No extra subtitles, numbers, or descriptors.
 2. Academic Context, Scientific Network & Historical Legacy (~20% of content):
    - Concise historical background.
-   - Academic network: Mentors, peer collaborations, and notable scientific debates/disputes.
-   - Historical legacy: Paradigm shifts and long-term impact on subsequent physical theories.
+   - Academic network: Mentors, peer collaborations, and scientific debates/disputes.
+   - Historical legacy: Paradigm shifts and long-term impact on physics.
 3. Theoretical & Mathematical Foundations (~30% of content):
    - Detailed physical principles and FULL mathematical derivations.
-   - MANDATORY: ALL physical variables, constants, and equations MUST strictly use LaTeX formatting ($...$ for inline and $$...$$ for block formulas). Plain text math is STRICTLY FORBIDDEN.
+   - MANDATORY LATEX RULES: 
+     * ALL physical variables, constants, and equations MUST use MathJax formatting: $...$ for inline and $$...$$ for block formulas.
+     * NEVER add spaces inside dollar delimiters (e.g., write $R$ NOT $ R $ or $.R.$).
+     * DO NOT escape dollar signs in HTML.
+     * NEVER use \\implies; always use \\Rightarrow for implication arrows.
 4. Experimental Apparatus & Laboratory Metrology (~25% of content):
    - Physical characterization of experimental setups, measurement procedures, calibration, and error analysis.
 5. Modern Laboratory & Technological Applications (~25% of content):
    - Practical modern applications and implementation in university laboratory physics experiments.
 6. References & Scientific Sources Section (MANDATORY):
    - Dedicated HTML table or structured list of all verified references from Stage 1 before the AI disclosure box.
-7. AI Transparency Box:
-   - Clean HTML callout box stating article synthesis via Physics Pipeline Engine and academic review for phy-lab.com.
+7. AI Transparency Box (MANDATORY EXACT TEXT):
+   - You MUST include a clean HTML callout box at the very end with this EXACT Arabic text:
+   "<div style='background-color: #f8f9fa; border-right: 4px solid #0056b3; padding: 15px; margin-top: 30px; border-radius: 4px;'><strong>تنويه:</strong> أُعدّ هذا المقال آليًا بواسطة وكيل ذكاء اصطناعي وفق معايير محددة للبحث والتحقق والصياغة العلمية، مع الاستناد إلى مصادر موثوقة. ويُنصح بالرجوع إلى المراجع المرفقة للتحقق من التفاصيل والمعلومات الواردة في المقال.</div>"
 
 --------------------------------------------------
 QUALITY CONTROL EVALUATION (QA)
@@ -117,7 +124,7 @@ QUALITY CONTROL EVALUATION (QA)
 Evaluate your generated content internally and fill the `qa_evaluation` object:
 - quality_score: Integer (0 to 100).
 - has_mandatory_references: Boolean (MUST be true if references table/list is explicitly generated in html_content).
-- has_strict_latex: Boolean (MUST be true if all equations and physical variables use $...$ or $$...$$).
+- has_strict_latex: Boolean (MUST be true if all equations and physical variables use valid LaTeX without spaces or non-standard macros).
 - critical_errors: List of string errors found.
 - publish_recommendation: "PUBLISH" if score >= 90, has_mandatory_references is true, and has_strict_latex is true, else "REVIEW".
 
@@ -152,6 +159,42 @@ def clean_json_response(text: str) -> str:
         return match.group(1).strip()
     return text
 
+def clean_html_latex(html_content: str) -> str:
+    """
+    Sanitizes and normalizes LaTeX math expressions in HTML content
+    to ensure full compatibility with WordPress MathJax / KaTeX renderers.
+    """
+    if not html_content:
+        return ""
+
+    # 1. Unescape escaped dollar signs (\$ -> $)
+    html_content = re.sub(r'\\\$', '$', html_content)
+
+    # 2. Replace unsupported AMS LaTeX commands
+    html_content = html_content.replace(r"\implies", r"\Rightarrow")
+
+    # 3. Normalize misplaced periods/punctuation around inline delimiters
+    # e.g., $.R.$ or $.L.$ -> $R$.
+    html_content = re.sub(r'\$\s*\.\s*([^$\n]+?)\s*\.\s*\$', r'$\1$.', html_content)
+    html_content = re.sub(r'\$\s*\.\s*([^$\n]+?)\s*\$', r'$\1$.', html_content)
+
+    # 4. Strip internal whitespace padding inside single dollar signs
+    # e.g., $ T $ -> $T$, $ \theta $ -> $\theta$
+    html_content = re.sub(r'\$\s+([^$\n]+?)\s+\$', r'$\1$', html_content)
+    html_content = re.sub(r'\$\s+([^$\n]+?)\$', r'$\1$', html_content)
+    html_content = re.sub(r'\$([^$\n]+?)\s+\$', r'$\1$', html_content)
+
+    # 5. Convert accidental inline double dollars ($$q_1$$ -> $q_1$)
+    def fix_inline_double_dollars(match):
+        content = match.group(1).strip()
+        if '\n' not in content and len(content) < 80 and not content.startswith('\\begin'):
+            return f"${content}$"
+        return match.group(0)
+
+    html_content = re.sub(r'\$\$\s*([^$\n]+?)\s*\$\$', fix_inline_double_dollars, html_content)
+
+    return html_content.strip()
+
 def get_wordpress_category_id(slug: str = "physicists") -> list:
     """Retrieves or defaults the WordPress category ID."""
     if not (WP_USER and WP_PASSWORD):
@@ -172,6 +215,7 @@ def post_or_update_wordpress(article_data: dict) -> bool:
         return False
 
     categories = get_wordpress_category_id("physicists")
+    sanitized_content = clean_html_latex(article_data["html_content"])
     
     target_slug = article_data.get("seo", {}).get("slug")
     if not target_slug:
@@ -191,7 +235,7 @@ def post_or_update_wordpress(article_data: dict) -> bool:
 
     payload = {
         "title": article_data["post_title"],
-        "content": article_data["html_content"].strip(),
+        "content": sanitized_content,
         "status": "draft",
         "slug": target_slug,
         "excerpt": article_data.get("seo", {}).get("meta_description", ""),
@@ -298,7 +342,6 @@ def main():
 
     if not json_file_path:
         print(f"[CRITICAL ERROR] No dataset found. Checked paths: {candidates}")
-        print(f"[Debug] Files present in workspace: {os.listdir(BASE_DIR)}")
         sys.exit(1)
 
     dataset_name = os.path.basename(json_file_path)
@@ -307,9 +350,6 @@ def main():
     with open(json_file_path, "r", encoding="utf-8") as f:
         physicists = json.load(f)
 
-    print(f"[Debug] Total records loaded from {dataset_name}: {len(physicists)}")
-
-    # Strict filtering for pending entities
     pending_entities = [
         p for p in physicists 
         if str(p.get("status", "")).strip().lower() == "pending"
@@ -321,7 +361,6 @@ def main():
         print("[Pipeline Engine] No pending entities found to process. Exiting cleanly.")
         return
 
-    # Select batch size
     batch = pending_entities[:BATCH_SIZE]
     print(f"[Pipeline Engine] Processing batch of {len(batch)} item(s)...")
 
@@ -335,7 +374,6 @@ def main():
             entity_name = entity.get("arabic_name") or entity.get("name")
             print(f"[Failure] Entity '{entity_name}' failed processing. Retaining status 'pending'.")
 
-    # Save state changes
     with open(json_file_path, "w", encoding="utf-8") as f:
         json.dump(physicists, f, ensure_ascii=False, indent=2)
     print(f"[Pipeline Engine] State saved successfully to {dataset_name}.")

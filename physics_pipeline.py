@@ -233,24 +233,49 @@ def sanitize_latex_execution(html_content: str) -> str:
         'sin', 'cos', 'tan', 'sqrt', 'int', 'sum', 'ln', 'log'
     ]
 
+    # --------------------------------------------------------------------
+    # Stash every $$...$$ display block behind a placeholder BEFORE touching
+    # inline math. Doing the two passes as two independent regexes on the
+    # same text is unsafe: the inline pattern's first '$' cannot land on the
+    # first '$' of a "$$" pair, so it starts one character in and leaves a
+    # stray '$' dangling on each side of every display block. Those stray
+    # '$' characters then pair up with the *next* unrelated inline "$...$"
+    # further down the article and swallow whole sentences into bogus math
+    # spans. Placeholders make that impossible: the whole "$$...$$" span
+    # (all four delimiter characters) is consumed in one match, so nothing
+    # is left over for the inline pass to misinterpret.
+    # --------------------------------------------------------------------
+    display_blocks = []
+
+    def stash_display_math(match):
+        math_str = match.group(1)
+        for kw in keywords:
+            pattern = r'(?<!\\)\b' + kw + r'\b'
+            math_str = re.sub(pattern, r'\\' + kw, math_str)
+        display_blocks.append(math_str.strip())
+        return f"\x00DISPLAYMATH{len(display_blocks) - 1}\x00"
+
+    html_content = re.sub(r'\$\$\s*([\s\S]+?)\s*\$\$', stash_display_math, html_content)
+
     def repair_math_block(match):
         math_str = match.group(1)
         for kw in keywords:
             pattern = r'(?<!\\)\b' + kw + r'\b'
             math_str = re.sub(pattern, r'\\' + kw, math_str)
         math_str = re.sub(r'\\\.\s*', '.', math_str)
-        return f"${math_str.strip()}$"
+        # The site's MathJax-LaTeX plugin (phy-lab.com) does not enable single-$
+        # as an inline math delimiter by default (only $$...$$ and \(...\) are
+        # recognized natively) — see plugin docs. Convert inline math to \( ... \)
+        # here at publish time so it actually renders, while the generation-stage
+        # prompts keep using the project's mandated $ ... $ authoring syntax.
+        return f"\\({math_str.strip()}\\)"
 
+    # By now every literal "$$" has been removed (replaced by placeholders),
+    # so this can only ever match genuine single-$ inline pairs.
     html_content = re.sub(r'\$([^$\n]+?)\$', repair_math_block, html_content)
 
-    def repair_display_math(match):
-        math_str = match.group(1)
-        for kw in keywords:
-            pattern = r'(?<!\\)\b' + kw + r'\b'
-            math_str = re.sub(pattern, r'\\' + kw, math_str)
-        return f"$${math_str.strip()}$$"
-
-    html_content = re.sub(r'\$\$\s*([\s\S]+?)\s*\$\$', repair_display_math, html_content)
+    for i, content in enumerate(display_blocks):
+        html_content = html_content.replace(f"\x00DISPLAYMATH{i}\x00", f"$${content}$$")
 
     return html_content.strip()
 

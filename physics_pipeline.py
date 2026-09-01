@@ -7,6 +7,7 @@ PHYSICS PIPELINE ENGINE - PHY-LAB.COM
 Developer: AI-Enabled Technology Solutions Developer & Physics Lab Technician
 Core Function: Automated Academic Research, Structural Blueprinting, 
                LaTeX Sanitization, and WordPress REST API Integration.
+Primary Model: gemini-3.6-flash
 ================================================================================
 """
 
@@ -36,8 +37,16 @@ WP_URL = os.getenv("WP_URL") or "https://phy-lab.com/wp-json/wp/v2"
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
-# Model & Pipeline Parameters
-MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-1.5-flash"
+# Primary model default set to gemini-3.6-flash with fallback hierarchy
+ENV_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip()
+
+MODEL_CANDIDATES = list(dict.fromkeys([
+    ENV_MODEL,
+    "gemini-3.6-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash"
+]))
+
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))
 
 if not GEMINI_API_KEY:
@@ -45,13 +54,30 @@ if not GEMINI_API_KEY:
     sys.exit(1)
 
 genai.configure(api_key=GEMINI_API_KEY)
-print(f"[Pipeline Init] Initializing Gemini Model: {MODEL_NAME}")
-model = genai.GenerativeModel(MODEL_NAME)
 
 WP_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Accept": "application/json"
 }
+
+# ==============================================================================
+# HELPER: ROBUST MODEL GENERATION WITH FALLBACK
+# ==============================================================================
+def generate_with_fallback(prompt: str) -> str:
+    """Tries generating content sequentially across target candidate models."""
+    last_exception = None
+    for model_name in MODEL_CANDIDATES:
+        try:
+            print(f"[Gemini API] Attempting generation with model: '{model_name}'...")
+            candidate_model = genai.GenerativeModel(model_name)
+            response = candidate_model.generate_content(prompt)
+            return response.text
+        except Exception as e:
+            err_msg = str(e)
+            print(f"[Model Exception] Engine '{model_name}' returned error: {err_msg}")
+            last_exception = e
+            continue
+    raise last_exception if last_exception else RuntimeError("All configured model candidates failed.")
 
 # ==============================================================================
 # PROMPT DEFINITIONS WITH STRICT ESCAPING & STRUCTURE
@@ -186,24 +212,16 @@ def clean_json_response(text: str) -> str:
     return text
 
 def sanitize_latex_execution(html_content: str) -> str:
-    """
-    Robustly restores broken LaTeX commands stripped by Python string escapes 
-    or JSON parsing issues (e.g., converting unescaped 'tau' back to '\\tau').
-    """
+    """Restores broken LaTeX commands stripped by Python string escapes or JSON parsing."""
     if not html_content:
         return ""
 
-    # Fix tab characters resulting from unescaped \t in Python string evaluation
     html_content = html_content.replace('\t', r'\t')
-    
-    # Unescape escaped dollar signs (\$ -> $)
     html_content = re.sub(r'\\\$', '$', html_content)
 
-    # Convert non-standard AMS symbols
     html_content = html_content.replace(r"\implies", r"\Rightarrow")
     html_content = html_content.replace("implies", r"\Rightarrow")
 
-    # Critical LaTeX keywords to enforce backslashes inside math delimiters
     keywords = [
         'tau', 'theta', 'kappa', 'sigma', 'phi', 'pi', 'varepsilon', 'epsilon',
         'alpha', 'beta', 'gamma', 'delta', 'lambda', 'mu', 'nu', 'rho', 'omega',
@@ -214,18 +232,13 @@ def sanitize_latex_execution(html_content: str) -> str:
     def repair_math_block(match):
         math_str = match.group(1)
         for kw in keywords:
-            # Add backslash if keyword lacks a leading backslash
             pattern = r'(?<!\\)\b' + kw + r'\b'
             math_str = re.sub(pattern, r'\\' + kw, math_str)
-        
-        # Clean stray trailing dots/escapes
         math_str = re.sub(r'\\\.\s*', '.', math_str)
         return f"${math_str.strip()}$"
 
-    # Process inline math $...$
     html_content = re.sub(r'\$([^$\n]+?)\$', repair_math_block, html_content)
 
-    # Process display math $$...$$
     def repair_display_math(match):
         math_str = match.group(1)
         for kw in keywords:
@@ -238,7 +251,6 @@ def sanitize_latex_execution(html_content: str) -> str:
     return html_content.strip()
 
 def get_wordpress_category_id(slug: str = "physicists") -> list:
-    """Retrieves or defaults the WordPress category ID."""
     if not (WP_USER and WP_PASSWORD):
         return []
     try:
@@ -251,7 +263,6 @@ def get_wordpress_category_id(slug: str = "physicists") -> list:
     return []
 
 def post_or_update_wordpress(article_data: dict) -> bool:
-    """Posts a new article or updates an existing draft if the slug matches."""
     if not (WP_USER and WP_PASSWORD):
         print("[Error] Missing WordPress authentication credentials.")
         return False
@@ -316,7 +327,6 @@ def post_or_update_wordpress(article_data: dict) -> bool:
 # ==============================================================================
 
 def process_physicist(entity: dict) -> bool:
-    """Executes Stage 1, Stage 2, QA Validation, and WP publishing for an entity."""
     p_name_en = entity.get("name", "Unknown")
     p_name_ar = entity.get("arabic_name") or entity.get("name_ar") or p_name_en
 
@@ -329,8 +339,8 @@ def process_physicist(entity: dict) -> bool:
     prompt_1 = STAGE_1_PROMPT.format(physicists_name=p_name_en, physicists_name_ar=p_name_ar)
     
     try:
-        res_1 = model.generate_content(prompt_1)
-        stage_1_json_str = clean_json_response(res_1.text)
+        raw_text_1 = generate_with_fallback(prompt_1)
+        stage_1_json_str = clean_json_response(raw_text_1)
         stage_1_data = json.loads(stage_1_json_str)
         print("[Stage 1] Blueprint generated successfully.")
     except Exception as e:
@@ -342,8 +352,8 @@ def process_physicist(entity: dict) -> bool:
     prompt_2 = STAGE_2_PROMPT.format(stage_1_json=json.dumps(stage_1_data, ensure_ascii=False))
 
     try:
-        res_2 = model.generate_content(prompt_2)
-        stage_2_json_str = clean_json_response(res_2.text)
+        raw_text_2 = generate_with_fallback(prompt_2)
+        stage_2_json_str = clean_json_response(raw_text_2)
         stage_2_data = json.loads(stage_2_json_str)
     except Exception as e:
         print(f"[CRITICAL ERROR] Stage 2 Generation Failed: {e}")

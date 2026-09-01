@@ -206,4 +206,236 @@ You MUST respond strictly with a valid JSON object matching this schema:
 def clean_json_response(text: str) -> str:
     """Extracts JSON content from markdown code blocks and purges illegal control characters."""
     text = text.strip()
-    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+    if match:
+        text = match.group(1).strip()
+    # Strip raw C0 control characters (U+0000-U+001F) that break json.loads with
+    # "Invalid control character" errors, while preserving tab/newline/carriage return
+    # so multi-line string values inside the JSON remain intact.
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
+    return text
+
+def sanitize_latex_execution(html_content: str) -> str:
+    """Restores broken LaTeX commands stripped by Python string escapes or JSON parsing."""
+    if not html_content:
+        return ""
+
+    html_content = html_content.replace('\t', r'\t')
+    html_content = re.sub(r'\\\$', '$', html_content)
+
+    html_content = html_content.replace(r"\implies", r"\Rightarrow")
+    html_content = html_content.replace("implies", r"\Rightarrow")
+
+    keywords = [
+        'tau', 'theta', 'kappa', 'sigma', 'phi', 'pi', 'varepsilon', 'epsilon',
+        'alpha', 'beta', 'gamma', 'delta', 'lambda', 'mu', 'nu', 'rho', 'omega',
+        'frac', 'text', 'cdot', 'approx', 'propto', 'Rightarrow', 'left', 'right',
+        'sin', 'cos', 'tan', 'sqrt', 'int', 'sum', 'ln', 'log'
+    ]
+
+    def repair_math_block(match):
+        math_str = match.group(1)
+        for kw in keywords:
+            pattern = r'(?<!\\)\b' + kw + r'\b'
+            math_str = re.sub(pattern, r'\\' + kw, math_str)
+        math_str = re.sub(r'\\\.\s*', '.', math_str)
+        return f"${math_str.strip()}$"
+
+    html_content = re.sub(r'\$([^$\n]+?)\$', repair_math_block, html_content)
+
+    def repair_display_math(match):
+        math_str = match.group(1)
+        for kw in keywords:
+            pattern = r'(?<!\\)\b' + kw + r'\b'
+            math_str = re.sub(pattern, r'\\' + kw, math_str)
+        return f"$${math_str.strip()}$$"
+
+    html_content = re.sub(r'\$\$\s*([\s\S]+?)\s*\$\$', repair_display_math, html_content)
+
+    return html_content.strip()
+
+def get_wordpress_category_id(slug: str = "physicists") -> list:
+    if not (WP_USER and WP_PASSWORD):
+        return []
+    try:
+        endpoint = f"{WP_URL.rstrip('/')}/categories?slug={slug}"
+        res = requests.get(endpoint, auth=(WP_USER, WP_PASSWORD), headers=WP_HEADERS, timeout=15)
+        if res.status_code == 200 and len(res.json()) > 0:
+            return [res.json()[0]["id"]]
+    except Exception as e:
+        print(f"[WordPress Warning] Category lookup error: {e}")
+    return []
+
+def post_or_update_wordpress(article_data: dict) -> bool:
+    if not (WP_USER and WP_PASSWORD):
+        print("[Error] Missing WordPress authentication credentials.")
+        return False
+
+    categories = get_wordpress_category_id("physicists")
+    sanitized_content = sanitize_latex_execution(article_data["html_content"])
+    
+    target_slug = article_data.get("seo", {}).get("slug")
+    if not target_slug:
+        raw_title = article_data.get("post_title", "physicist")
+        target_slug = re.sub(r'\s+', '-', raw_title).lower()
+
+    search_endpoint = f"{WP_URL.rstrip('/')}/posts?slug={target_slug}&status=any"
+    existing_post_id = None
+
+    try:
+        search_res = requests.get(search_endpoint, auth=(WP_USER, WP_PASSWORD), headers=WP_HEADERS, timeout=15)
+        if search_res.status_code == 200 and len(search_res.json()) > 0:
+            existing_post_id = search_res.json()[0]["id"]
+            print(f"[WordPress API] Found existing post ID: {existing_post_id} for slug '{target_slug}'. Executing UPDATE.")
+    except Exception as e:
+        print(f"[WordPress API Warning] Post lookup failed: {e}")
+
+    payload = {
+        "title": article_data["post_title"],
+        "content": sanitized_content,
+        "status": "draft",
+        "slug": target_slug,
+        "excerpt": article_data.get("seo", {}).get("meta_description", ""),
+        "categories": categories
+    }
+
+    if existing_post_id:
+        endpoint = f"{WP_URL.rstrip('/')}/posts/{existing_post_id}"
+    else:
+        endpoint = f"{WP_URL.rstrip('/')}/posts"
+
+    post_headers = WP_HEADERS.copy()
+    post_headers["Content-Type"] = "application/json"
+
+    try:
+        response = requests.post(
+            endpoint,
+            auth=(WP_USER, WP_PASSWORD),
+            json=payload,
+            headers=post_headers,
+            timeout=30
+        )
+        if response.status_code in [200, 201]:
+            action = "Updated" if existing_post_id else "Created"
+            print(f"[WordPress API] Post {action} successfully. Post ID: {response.json().get('id')}")
+            return True
+        else:
+            print(f"[WordPress API Error] Status {response.status_code}: {response.text}")
+            return False
+    except Exception as e:
+        print(f"[WordPress API Exception] {e}")
+        return False
+
+# ==============================================================================
+# PIPELINE EXECUTION ENGINE
+# ==============================================================================
+
+def process_physicist(entity: dict) -> bool:
+    p_name_en = entity.get("name", "Unknown")
+    p_name_ar = entity.get("arabic_name") or entity.get("name_ar") or p_name_en
+
+    print(f"\n==================================================")
+    print(f"Processing Entity ID {entity.get('id')}: {p_name_ar} ({p_name_en})")
+    print(f"==================================================")
+
+    # Stage 1 Execution
+    print("[Stage 1] Executing Deep Research & Blueprint Structuring...")
+    prompt_1 = STAGE_1_PROMPT.format(physicists_name=p_name_en, physicists_name_ar=p_name_ar)
+    
+    try:
+        raw_text_1 = generate_with_fallback(prompt_1)
+        stage_1_json_str = clean_json_response(raw_text_1)
+        stage_1_data = json.loads(stage_1_json_str)
+        print("[Stage 1] Blueprint generated successfully.")
+    except Exception as e:
+        print(f"[CRITICAL ERROR] Stage 1 Generation Failed: {e}")
+        return False
+
+    # Stage 2 Execution
+    print("[Stage 2] Executing HTML Synthesis & Academic QA Evaluation...")
+    prompt_2 = STAGE_2_PROMPT.format(stage_1_json=json.dumps(stage_1_data, ensure_ascii=False))
+
+    try:
+        raw_text_2 = generate_with_fallback(prompt_2)
+        stage_2_json_str = clean_json_response(raw_text_2)
+        stage_2_data = json.loads(stage_2_json_str)
+    except Exception as e:
+        print(f"[CRITICAL ERROR] Stage 2 Generation Failed: {e}")
+        return False
+
+    # QA Gateway Verification
+    qa = stage_2_data.get("qa_evaluation", {})
+    quality_score = qa.get("quality_score", 0)
+    has_references = str(qa.get("has_mandatory_references", False)).lower() == "true"
+    has_latex = str(qa.get("has_strict_latex", False)).lower() == "true"
+    recommendation = qa.get("publish_recommendation", "REJECT")
+
+    print(f"[QA Gate] Score: {quality_score}/100 | References: {has_references} | Strict LaTeX: {has_latex} | Rec: {recommendation}")
+
+    if (
+        quality_score >= 90
+        and has_references
+        and has_latex
+        and recommendation == "PUBLISH"
+    ):
+        print("[QA Gate PASSED] Publishing draft to WordPress...")
+        return post_or_update_wordpress(stage_2_data)
+    else:
+        print(f"[QA Gate FAILED] Critical Errors: {qa.get('critical_errors', [])}. Post withheld.")
+        return False
+
+# ==============================================================================
+# MAIN ENTRY POINT
+# ==============================================================================
+
+def main():
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    candidates = ["physicists.json", "scientists.json"]
+    json_file_path = None
+
+    for candidate in candidates:
+        target_path = os.path.join(BASE_DIR, candidate)
+        if os.path.exists(target_path):
+            json_file_path = target_path
+            break
+
+    if not json_file_path:
+        print(f"[CRITICAL ERROR] No dataset found. Checked paths: {candidates}")
+        sys.exit(1)
+
+    dataset_name = os.path.basename(json_file_path)
+    print(f"[Pipeline Engine] Loaded dataset file: '{dataset_name}'")
+
+    with open(json_file_path, "r", encoding="utf-8") as f:
+        physicists = json.load(f)
+
+    pending_entities = [
+        p for p in physicists 
+        if str(p.get("status", "")).strip().lower() == "pending"
+    ]
+
+    print(f"[Debug] Total pending entities detected: {len(pending_entities)}")
+
+    if not pending_entities:
+        print("[Pipeline Engine] No pending entities found to process. Exiting cleanly.")
+        return
+
+    batch = pending_entities[:BATCH_SIZE]
+    print(f"[Pipeline Engine] Processing batch of {len(batch)} item(s)...")
+
+    for entity in batch:
+        success = process_physicist(entity)
+        if success:
+            entity["status"] = "completed"
+            entity_name = entity.get("arabic_name") or entity.get("name")
+            print(f"[Success] Entity '{entity_name}' processed and marked as 'completed'.")
+        else:
+            entity_name = entity.get("arabic_name") or entity.get("name")
+            print(f"[Failure] Entity '{entity_name}' failed processing. Retaining status 'pending'.")
+
+    with open(json_file_path, "w", encoding="utf-8") as f:
+        json.dump(physicists, f, ensure_ascii=False, indent=2)
+    print(f"[Pipeline Engine] State saved successfully to {dataset_name}.")
+
+if __name__ == "__main__":
+    main()

@@ -14,7 +14,7 @@ WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
 # Model & Execution Parameters
-MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-2.5-flash"
+MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-3.6-flash"
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))
 
 if not GEMINI_API_KEY:

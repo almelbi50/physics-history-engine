@@ -13,8 +13,9 @@ WP_URL = os.getenv("WP_URL") or "https://phy-lab.com/wp-json/wp/v2"
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
-# Use environment variable for flexible model testing (Defaults to stable gemini-2.5-flash)
+# Model configuration with fallback
 MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-2.5-flash"
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))  # Process 1 scientist per execution to respect API quotas
 
 if not GEMINI_API_KEY:
     print("[CRITICAL] GEMINI_API_KEY environment variable is missing.")
@@ -93,7 +94,7 @@ Your goal is to write a comprehensive, publication-ready academic article in cle
 --------------------------------------------------
 MANDATORY CONTENT WEIGHT & STRUCTURE (80% PHYSICS / 20% HISTORY)
 --------------------------------------------------
-1. H1 Main Title: Exact Arabic Name ONLY (e.g., "دانيال برنولي"). No extra subtitles, numbers, or descriptors.
+1. H1 Main Title: Exact Arabic Name ONLY (e.g., "شارل أوغسطين دي كولوم"). No extra subtitles, numbers, or descriptors.
 2. Academic Context, Scientific Network & Historical Legacy (~20% of content):
    - Concise historical background.
    - Academic network: Mentors, peer collaborations, and notable scientific debates/disputes.
@@ -177,13 +178,11 @@ def post_or_update_wordpress(article_data: dict) -> bool:
     categories = get_wordpress_category_id("physicists")
     sanitized_content = clean_html_latex(article_data["html_content"])
     
-    # Robust slug retrieval with fallback
     target_slug = article_data.get("seo", {}).get("slug")
     if not target_slug:
         raw_title = article_data.get("post_title", "physicist")
         target_slug = re.sub(r'\s+', '-', raw_title).lower()
 
-    # Search for existing post with the same slug to prevent duplicate URLs
     search_endpoint = f"{WP_URL.rstrip('/')}/posts?slug={target_slug}&status=any"
     existing_post_id = None
 
@@ -235,13 +234,14 @@ def post_or_update_wordpress(article_data: dict) -> bool:
 def process_physicist(entity: dict) -> bool:
     """Executes Stage 1, Stage 2, QA Validation, and WP publishing for a physicist entity."""
     p_name_en = entity.get("name")
-    p_name_ar = entity.get("name_ar")
+    # Robust key fallback: supports 'arabic_name' and 'name_ar'
+    p_name_ar = entity.get("arabic_name") or entity.get("name_ar")
 
     print(f"\n==================================================")
-    print(f"Processing Physicist: {p_name_ar} ({p_name_en})")
+    print(f"Processing Entity ID {entity.get('id')}: {p_name_ar} ({p_name_en})")
     print(f"==================================================")
 
-    # --- STAGE 1: Research & Structuring ---
+    # Stage 1 Execution
     print("[Stage 1] Executing Deep Research & Blueprint Structuring...")
     prompt_1 = STAGE_1_PROMPT.format(physicists_name=p_name_en, physicists_name_ar=p_name_ar)
     
@@ -251,10 +251,10 @@ def process_physicist(entity: dict) -> bool:
         stage_1_data = json.loads(stage_1_json_str)
         print("[Stage 1] Blueprint generated successfully.")
     except Exception as e:
-        print(f"[CRITICAL] Stage 1 Generation Failed: {e}")
+        print(f"[CRITICAL ERROR] Stage 1 Generation Failed: {e}")
         return False
 
-    # --- STAGE 2: Content Generation & QA Evaluation ---
+    # Stage 2 Execution
     print("[Stage 2] Executing HTML Synthesis & Academic QA Evaluation...")
     prompt_2 = STAGE_2_PROMPT.format(stage_1_json=json.dumps(stage_1_data, ensure_ascii=False))
 
@@ -263,10 +263,10 @@ def process_physicist(entity: dict) -> bool:
         stage_2_json_str = clean_json_response(res_2.text)
         stage_2_data = json.loads(stage_2_json_str)
     except Exception as e:
-        print(f"[CRITICAL] Stage 2 Generation Failed: {e}")
+        print(f"[CRITICAL ERROR] Stage 2 Generation Failed: {e}")
         return False
 
-    # --- QA GATEWAY VERIFICATION ---
+    # QA Gateway Verification
     qa = stage_2_data.get("qa_evaluation", {})
     quality_score = qa.get("quality_score", 0)
     has_references = str(qa.get("has_mandatory_references", False)).lower() == "true"
@@ -289,14 +289,12 @@ def process_physicist(entity: dict) -> bool:
         return False
 
 # ==============================================================================
-# MAIN ENTRY POINT (ROBUST FILE LOCALIZATION)
+# MAIN ENTRY POINT
 # ==============================================================================
 
 def main():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    
-    # Priority list of possible dataset names
-    default_candidates = ["physicists.json", "scientists.json"]
+    default_candidates = ["scientists.json", "physicists.json"]
     json_file_path = None
 
     for candidate in default_candidates:
@@ -305,45 +303,38 @@ def main():
             json_file_path = p
             break
 
-    # Broad search fallback across directory if exact matches fail
     if not json_file_path:
-        print(f"[Warning] Exact files {default_candidates} not found.")
-        print(f"[Debug] Files present in directory: {os.listdir(BASE_DIR)}")
+        print(f"[CRITICAL ERROR] No JSON dataset detected in root directory.")
+        sys.exit(1)
 
-        fallback_files = [
-            f for f in os.listdir(BASE_DIR)
-            if f.lower().endswith('.json') and any(k in f.lower() for k in ['physic', 'scient', 'data'])
-        ]
-
-        if fallback_files:
-            json_file_path = os.path.join(BASE_DIR, fallback_files[0])
-        else:
-            print(f"[CRITICAL ERROR] No valid dataset JSON file detected in root directory.")
-            sys.exit(1)
-
-    print(f"[Pipeline Engine] Successfully localized dataset: '{os.path.basename(json_file_path)}'")
+    print(f"[Pipeline Engine] Localized dataset: '{os.path.basename(json_file_path)}'")
 
     with open(json_file_path, "r", encoding="utf-8") as f:
         physicists = json.load(f)
 
-    # Process entities with status 'pending'
-    pending_entities = [p for p in physicists if p.get("status") == "pending"]
+    # Filter pending entities (case-insensitive)
+    pending_entities = [
+        p for p in physicists 
+        if str(p.get("status", "")).strip().lower() == "pending"
+    ]
 
     if not pending_entities:
         print("[Pipeline Engine] No pending entities found to process.")
         return
 
-    print(f"[Pipeline Engine] Found {len(pending_entities)} pending entity/entities.")
+    # Restrict batch size to prevent API rate limiting and GitHub Action timeouts
+    batch = pending_entities[:BATCH_SIZE]
+    print(f"[Pipeline Engine] Found {len(pending_entities)} pending entities. Processing batch of {len(batch)}...")
 
-    for entity in pending_entities:
+    for entity in batch:
         success = process_physicist(entity)
         if success:
-            entity["status"] = "processed"
-            print(f"[Success] Entity '{entity.get('name_ar')}' processed and published as draft.")
+            entity["status"] = "completed"
+            print(f"[Success] Entity '{entity.get('arabic_name') or entity.get('name')}' marked as 'completed'.")
         else:
-            print(f"[Failure] Processing failed for '{entity.get('name_ar')}'. Status remains pending.")
+            print(f"[Failure] Processing failed for '{entity.get('arabic_name') or entity.get('name')}'. Status remains pending.")
 
-    # Save updated status back to resolved JSON path
+    # Save updated dataset
     with open(json_file_path, "w", encoding="utf-8") as f:
         json.dump(physicists, f, ensure_ascii=False, indent=2)
 

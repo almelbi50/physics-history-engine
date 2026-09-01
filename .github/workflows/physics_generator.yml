@@ -2,22 +2,19 @@ name: Daily Physics Auto-Post Pipeline
 
 on:
   schedule:
-    # Running daily at 09:00 UTC (12:00 PM Saudi Arabia Time)
-    - cron: '0 9 * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+    - cron: '0 0 * * *'  # التشغيل التلقائي اليومي الساعة 00:00 UTC
+  workflow_dispatch:      # إتاحة التشغيل اليدوي عبر واجهة GitHub Actions
+
+permissions:
+  contents: write
 
 jobs:
   generate-scientist-draft:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write # Essential for git push permissions
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python Environment
         uses: actions/setup-python@v5
@@ -32,16 +29,15 @@ jobs:
       - name: Execute Physics Pipeline Engine
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          WP_URL: "https://phy-lab.com/wp-json/wp/v2"
+          WP_URL: ${{ secrets.WP_URL }}
           WP_USER: ${{ secrets.WP_USER }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
-        run: |
-          python physics_pipeline.py
+          BATCH_SIZE: 1
+        run: python physics_pipeline.py
 
-      - name: Commit and Push Updated scientists.json Queue
-        if: success()
+      - name: Commit and Push Updated physicists.json Queue
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add physicists.json knowledge_base/
-          git diff-index --quiet HEAD || (git commit -m "Auto-update: Queue state and generated Knowledge Base [skip ci]" && git push)
+          git add physicists.json knowledge_base/ 2>/dev/null || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "ci(pipeline): auto-update physicists.json queue state [skip ci]" && git push)

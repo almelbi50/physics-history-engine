@@ -26,7 +26,7 @@ print(f"[Pipeline Init] Initializing model: {MODEL_NAME}")
 model = genai.GenerativeModel(MODEL_NAME)
 
 # ==============================================================================
-# PROMPT DEFINITIONS
+# PROMPT DEFINITIONS WITH STRICT ESCAPING RULES
 # ==============================================================================
 
 STAGE_1_PROMPT = """You are a senior academic research assistant in physics and history of science.
@@ -45,10 +45,9 @@ Perform systematic validation across these structural dimensions:
 5. Historical legacy, epistemological impact, paradigm shifts, and influence on subsequent physics.
 6. Primary and peer-reviewed sources (MANDATORY).
 
-STRICT MATHEMATICAL RULE FOR STAGE 1:
-- All mathematical formulations and physical variables MUST strictly use standard MathJax/KaTeX LaTeX notation ($...$ for inline or $$...$$ for block formulas).
-- Do NOT use non-standard macros like \\implies. Use standard \\Rightarrow instead.
-- Ensure no whitespace inside dollar signs (e.g., use $R$ instead of $ R $).
+STRICT MATHEMATICAL & ESCAPING RULES FOR STAGE 1:
+- All LaTeX equations MUST use double backslashes inside JSON strings (e.g., "\\\\tau", "\\\\theta", "\\\\frac", "\\\\text", "\\\\Rightarrow").
+- Use $...$ for inline math and $$...$$ for block formulas.
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {{
@@ -103,11 +102,10 @@ MANDATORY CONTENT WEIGHT & STRUCTURE (80% PHYSICS / 20% HISTORY)
    - Historical legacy: Paradigm shifts and long-term impact on physics.
 3. Theoretical & Mathematical Foundations (~30% of content):
    - Detailed physical principles and FULL mathematical derivations.
-   - MANDATORY LATEX RULES: 
+   - MANDATORY LATEX ESCAPING RULES: 
      * ALL physical variables, constants, and equations MUST use MathJax formatting: $...$ for inline and $$...$$ for block formulas.
-     * NEVER add spaces inside dollar delimiters (e.g., write $R$ NOT $ R $ or $.R.$).
-     * DO NOT escape dollar signs in HTML.
-     * NEVER use \\implies; always use \\Rightarrow for implication arrows.
+     * ALL LaTeX control sequences MUST be double-escaped inside JSON strings: use "\\\\tau", "\\\\theta", "\\\\kappa", "\\\\frac", "\\\\text", "\\\\cdot", "\\\\approx", "\\\\propto", "\\\\Rightarrow".
+     * NEVER write unescaped single backslashes in JSON output.
 4. Experimental Apparatus & Laboratory Metrology (~25% of content):
    - Physical characterization of experimental setups, measurement procedures, calibration, and error analysis.
 5. Modern Laboratory & Technological Applications (~25% of content):
@@ -148,7 +146,7 @@ You MUST respond strictly with a valid JSON object matching this schema:
 """
 
 # ==============================================================================
-# HELPER FUNCTIONS
+# HELPER FUNCTIONS & LATEX SANITIZER ENGINE
 # ==============================================================================
 
 def clean_json_response(text: str) -> str:
@@ -159,39 +157,55 @@ def clean_json_response(text: str) -> str:
         return match.group(1).strip()
     return text
 
-def clean_html_latex(html_content: str) -> str:
+def sanitize_latex_execution(html_content: str) -> str:
     """
-    Sanitizes and normalizes LaTeX math expressions in HTML content
-    to ensure full compatibility with WordPress MathJax / KaTeX renderers.
+    Robustly restores broken LaTeX commands stripped by Python string escapes 
+    or JSON parsing issues (e.g., converting 'tau' back to '\tau').
     """
     if not html_content:
         return ""
 
-    # 1. Unescape escaped dollar signs (\$ -> $)
+    # Fix tab characters resulting from unescaped \t in Python strings
+    html_content = html_content.replace('\t', r'\t')
+    
+    # Unescape escaped dollar signs (\$ -> $)
     html_content = re.sub(r'\\\$', '$', html_content)
 
-    # 2. Replace unsupported AMS LaTeX commands
+    # Convert non-standard AMS symbols
     html_content = html_content.replace(r"\implies", r"\Rightarrow")
+    html_content = html_content.replace("implies", r"\Rightarrow")
 
-    # 3. Normalize misplaced periods/punctuation around inline delimiters
-    # e.g., $.R.$ or $.L.$ -> $R$.
-    html_content = re.sub(r'\$\s*\.\s*([^$\n]+?)\s*\.\s*\$', r'$\1$.', html_content)
-    html_content = re.sub(r'\$\s*\.\s*([^$\n]+?)\s*\$', r'$\1$.', html_content)
+    # List of critical LaTeX keywords to enforce backslashes on inside inline/block math
+    keywords = [
+        'tau', 'theta', 'kappa', 'sigma', 'phi', 'pi', 'varepsilon', 'epsilon',
+        'alpha', 'beta', 'gamma', 'delta', 'lambda', 'mu', 'nu', 'rho', 'omega',
+        'frac', 'text', 'cdot', 'approx', 'propto', 'Rightarrow', 'left', 'right',
+        'sin', 'cos', 'tan', 'sqrt', 'int', 'sum'
+    ]
 
-    # 4. Strip internal whitespace padding inside single dollar signs
-    # e.g., $ T $ -> $T$, $ \theta $ -> $\theta$
-    html_content = re.sub(r'\$\s+([^$\n]+?)\s+\$', r'$\1$', html_content)
-    html_content = re.sub(r'\$\s+([^$\n]+?)\$', r'$\1$', html_content)
-    html_content = re.sub(r'\$([^$\n]+?)\s+\$', r'$\1$', html_content)
+    def repair_math_block(match):
+        math_str = match.group(1)
+        for kw in keywords:
+            # Add backslash if keyword is missing its leading backslash
+            pattern = r'(?<!\\)\b' + kw + r'\b'
+            math_str = re.sub(pattern, r'\\' + kw, math_str)
+        
+        # Clean stray dots attached to variables like \tau_e\.
+        math_str = re.sub(r'\\\.\s*', '.', math_str)
+        return f"${math_str.strip()}$"
 
-    # 5. Convert accidental inline double dollars ($$q_1$$ -> $q_1$)
-    def fix_inline_double_dollars(match):
-        content = match.group(1).strip()
-        if '\n' not in content and len(content) < 80 and not content.startswith('\\begin'):
-            return f"${content}$"
-        return match.group(0)
+    # Process all inline math $...$
+    html_content = re.sub(r'\$([^$\n]+?)\$', repair_math_block, html_content)
 
-    html_content = re.sub(r'\$\$\s*([^$\n]+?)\s*\$\$', fix_inline_double_dollars, html_content)
+    # Process all block math $$...$$
+    def repair_display_math(match):
+        math_str = match.group(1)
+        for kw in keywords:
+            pattern = r'(?<!\\)\b' + kw + r'\b'
+            math_str = re.sub(pattern, r'\\' + kw, math_str)
+        return f"$${math_str.strip()}$$"
+
+    html_content = re.sub(r'\$\$\s*([\s\S]+?)\s*\$\$', repair_display_math, html_content)
 
     return html_content.strip()
 
@@ -215,7 +229,7 @@ def post_or_update_wordpress(article_data: dict) -> bool:
         return False
 
     categories = get_wordpress_category_id("physicists")
-    sanitized_content = clean_html_latex(article_data["html_content"])
+    sanitized_content = sanitize_latex_execution(article_data["html_content"])
     
     target_slug = article_data.get("seo", {}).get("slug")
     if not target_slug:

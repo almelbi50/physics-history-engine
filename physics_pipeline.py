@@ -1,9 +1,32 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+================================================================================
+PHYSICS PIPELINE ENGINE - PHY-LAB.COM
+================================================================================
+Developer: AI-Enabled Technology Solutions Developer & Physics Lab Technician
+Core Function: Automated Academic Research, Structural Blueprinting, 
+               LaTeX Sanitization, and WordPress REST API Integration.
+================================================================================
+"""
+
 import json
 import os
 import re
 import sys
+import socket
 import requests
+import urllib3.util.connection as urllib_util
 import google.generativeai as genai
+
+# ==============================================================================
+# FORCE IPV4 RESOLUTION (Eliminates GitHub Actions [Errno 101] Network is unreachable)
+# ==============================================================================
+def allowed_gai_family():
+    """Forces socket resolution to use IPv4 only."""
+    return socket.AF_INET
+
+urllib_util.allowed_gai_family = allowed_gai_family
 
 # ==============================================================================
 # CONFIGURATION & ENVIRONMENT SETUP
@@ -13,8 +36,8 @@ WP_URL = os.getenv("WP_URL") or "https://phy-lab.com/wp-json/wp/v2"
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
-# Model & Execution Parameters
-MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-3.6-flash"
+# Model & Pipeline Parameters
+MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-1.5-flash"
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))
 
 if not GEMINI_API_KEY:
@@ -22,11 +45,16 @@ if not GEMINI_API_KEY:
     sys.exit(1)
 
 genai.configure(api_key=GEMINI_API_KEY)
-print(f"[Pipeline Init] Initializing model: {MODEL_NAME}")
+print(f"[Pipeline Init] Initializing Gemini Model: {MODEL_NAME}")
 model = genai.GenerativeModel(MODEL_NAME)
 
+WP_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json"
+}
+
 # ==============================================================================
-# PROMPT DEFINITIONS WITH STRICT ESCAPING RULES
+# PROMPT DEFINITIONS WITH STRICT ESCAPING & STRUCTURE
 # ==============================================================================
 
 STAGE_1_PROMPT = """You are a senior academic research assistant in physics and history of science.
@@ -146,7 +174,7 @@ You MUST respond strictly with a valid JSON object matching this schema:
 """
 
 # ==============================================================================
-# HELPER FUNCTIONS & LATEX SANITIZER ENGINE
+# HELPER FUNCTIONS & SANITIZATION ENGINE
 # ==============================================================================
 
 def clean_json_response(text: str) -> str:
@@ -160,12 +188,12 @@ def clean_json_response(text: str) -> str:
 def sanitize_latex_execution(html_content: str) -> str:
     """
     Robustly restores broken LaTeX commands stripped by Python string escapes 
-    or JSON parsing issues (e.g., converting 'tau' back to '\tau').
+    or JSON parsing issues (e.g., converting unescaped 'tau' back to '\\tau').
     """
     if not html_content:
         return ""
 
-    # Fix tab characters resulting from unescaped \t in Python strings
+    # Fix tab characters resulting from unescaped \t in Python string evaluation
     html_content = html_content.replace('\t', r'\t')
     
     # Unescape escaped dollar signs (\$ -> $)
@@ -175,29 +203,29 @@ def sanitize_latex_execution(html_content: str) -> str:
     html_content = html_content.replace(r"\implies", r"\Rightarrow")
     html_content = html_content.replace("implies", r"\Rightarrow")
 
-    # List of critical LaTeX keywords to enforce backslashes on inside inline/block math
+    # Critical LaTeX keywords to enforce backslashes inside math delimiters
     keywords = [
         'tau', 'theta', 'kappa', 'sigma', 'phi', 'pi', 'varepsilon', 'epsilon',
         'alpha', 'beta', 'gamma', 'delta', 'lambda', 'mu', 'nu', 'rho', 'omega',
         'frac', 'text', 'cdot', 'approx', 'propto', 'Rightarrow', 'left', 'right',
-        'sin', 'cos', 'tan', 'sqrt', 'int', 'sum'
+        'sin', 'cos', 'tan', 'sqrt', 'int', 'sum', 'ln', 'log'
     ]
 
     def repair_math_block(match):
         math_str = match.group(1)
         for kw in keywords:
-            # Add backslash if keyword is missing its leading backslash
+            # Add backslash if keyword lacks a leading backslash
             pattern = r'(?<!\\)\b' + kw + r'\b'
             math_str = re.sub(pattern, r'\\' + kw, math_str)
         
-        # Clean stray dots attached to variables like \tau_e\.
+        # Clean stray trailing dots/escapes
         math_str = re.sub(r'\\\.\s*', '.', math_str)
         return f"${math_str.strip()}$"
 
-    # Process all inline math $...$
+    # Process inline math $...$
     html_content = re.sub(r'\$([^$\n]+?)\$', repair_math_block, html_content)
 
-    # Process all block math $$...$$
+    # Process display math $$...$$
     def repair_display_math(match):
         math_str = match.group(1)
         for kw in keywords:
@@ -215,7 +243,7 @@ def get_wordpress_category_id(slug: str = "physicists") -> list:
         return []
     try:
         endpoint = f"{WP_URL.rstrip('/')}/categories?slug={slug}"
-        res = requests.get(endpoint, auth=(WP_USER, WP_PASSWORD), timeout=10)
+        res = requests.get(endpoint, auth=(WP_USER, WP_PASSWORD), headers=WP_HEADERS, timeout=15)
         if res.status_code == 200 and len(res.json()) > 0:
             return [res.json()[0]["id"]]
     except Exception as e:
@@ -223,7 +251,7 @@ def get_wordpress_category_id(slug: str = "physicists") -> list:
     return []
 
 def post_or_update_wordpress(article_data: dict) -> bool:
-    """Posts a new article or updates an existing post if the slug already exists."""
+    """Posts a new article or updates an existing draft if the slug matches."""
     if not (WP_USER and WP_PASSWORD):
         print("[Error] Missing WordPress authentication credentials.")
         return False
@@ -240,7 +268,7 @@ def post_or_update_wordpress(article_data: dict) -> bool:
     existing_post_id = None
 
     try:
-        search_res = requests.get(search_endpoint, auth=(WP_USER, WP_PASSWORD), timeout=15)
+        search_res = requests.get(search_endpoint, auth=(WP_USER, WP_PASSWORD), headers=WP_HEADERS, timeout=15)
         if search_res.status_code == 200 and len(search_res.json()) > 0:
             existing_post_id = search_res.json()[0]["id"]
             print(f"[WordPress API] Found existing post ID: {existing_post_id} for slug '{target_slug}'. Executing UPDATE.")
@@ -261,17 +289,20 @@ def post_or_update_wordpress(article_data: dict) -> bool:
     else:
         endpoint = f"{WP_URL.rstrip('/')}/posts"
 
+    post_headers = WP_HEADERS.copy()
+    post_headers["Content-Type"] = "application/json"
+
     try:
         response = requests.post(
             endpoint,
             auth=(WP_USER, WP_PASSWORD),
             json=payload,
-            headers={"Content-Type": "application/json"},
+            headers=post_headers,
             timeout=30
         )
         if response.status_code in [200, 201]:
             action = "Updated" if existing_post_id else "Created"
-            print(f"[WordPress API] Post {action} successfully. ID: {response.json().get('id')}")
+            print(f"[WordPress API] Post {action} successfully. Post ID: {response.json().get('id')}")
             return True
         else:
             print(f"[WordPress API Error] Status {response.status_code}: {response.text}")

@@ -3,7 +3,7 @@
 
 # API & HTTP
 requests>=2.31.0        # HTTP library for WordPress API
-google-genai>=0.4.0     # Google Gemini API client
+google-generativeai>=0.8.0  # Google Gemini API client (matches `import google.generativeai` in physics_pipeline.py)
 
 # Environment Management
 python-dotenv>=1.0.0    # Load environment variables from .env (development only)

@@ -13,12 +13,12 @@ WP_URL = os.getenv("WP_URL") or "https://phy-lab.com/wp-json/wp/v2"
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 
-# Model configuration with fallback
+# Model & Execution Parameters
 MODEL_NAME = os.getenv("GEMINI_MODEL") or "gemini-2.5-flash"
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))  # Process 1 scientist per execution to respect API quotas
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))
 
 if not GEMINI_API_KEY:
-    print("[CRITICAL] GEMINI_API_KEY environment variable is missing.")
+    print("[CRITICAL ERROR] GEMINI_API_KEY environment variable is missing.")
     sys.exit(1)
 
 genai.configure(api_key=GEMINI_API_KEY)
@@ -152,10 +152,6 @@ def clean_json_response(text: str) -> str:
         return match.group(1).strip()
     return text
 
-def clean_html_latex(html_content: str) -> str:
-    """Sanitizes generated HTML and preserves LaTeX tags."""
-    return html_content.strip()
-
 def get_wordpress_category_id(slug: str = "physicists") -> list:
     """Retrieves or defaults the WordPress category ID."""
     if not (WP_USER and WP_PASSWORD):
@@ -170,13 +166,12 @@ def get_wordpress_category_id(slug: str = "physicists") -> list:
     return []
 
 def post_or_update_wordpress(article_data: dict) -> bool:
-    """Posts a new article OR updates an existing post if the slug already exists."""
+    """Posts a new article or updates an existing post if the slug already exists."""
     if not (WP_USER and WP_PASSWORD):
         print("[Error] Missing WordPress authentication credentials.")
         return False
 
     categories = get_wordpress_category_id("physicists")
-    sanitized_content = clean_html_latex(article_data["html_content"])
     
     target_slug = article_data.get("seo", {}).get("slug")
     if not target_slug:
@@ -196,7 +191,7 @@ def post_or_update_wordpress(article_data: dict) -> bool:
 
     payload = {
         "title": article_data["post_title"],
-        "content": sanitized_content,
+        "content": article_data["html_content"].strip(),
         "status": "draft",
         "slug": target_slug,
         "excerpt": article_data.get("seo", {}).get("meta_description", ""),
@@ -232,10 +227,9 @@ def post_or_update_wordpress(article_data: dict) -> bool:
 # ==============================================================================
 
 def process_physicist(entity: dict) -> bool:
-    """Executes Stage 1, Stage 2, QA Validation, and WP publishing for a physicist entity."""
-    p_name_en = entity.get("name")
-    # Robust key fallback: supports 'arabic_name' and 'name_ar'
-    p_name_ar = entity.get("arabic_name") or entity.get("name_ar")
+    """Executes Stage 1, Stage 2, QA Validation, and WP publishing for an entity."""
+    p_name_en = entity.get("name", "Unknown")
+    p_name_ar = entity.get("arabic_name") or entity.get("name_ar") or p_name_en
 
     print(f"\n==================================================")
     print(f"Processing Entity ID {entity.get('id')}: {p_name_ar} ({p_name_en})")
@@ -282,10 +276,9 @@ def process_physicist(entity: dict) -> bool:
         and recommendation == "PUBLISH"
     ):
         print("[QA Gate PASSED] Publishing draft to WordPress...")
-        published = post_or_update_wordpress(stage_2_data)
-        return published
+        return post_or_update_wordpress(stage_2_data)
     else:
-        print(f"[QA Gate FAILED] Critical Errors: {qa.get('critical_errors', [])}. Post withheld from WP.")
+        print(f"[QA Gate FAILED] Critical Errors: {qa.get('critical_errors', [])}. Post withheld.")
         return False
 
 # ==============================================================================
@@ -294,49 +287,58 @@ def process_physicist(entity: dict) -> bool:
 
 def main():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    default_candidates = ["scientists.json", "physicists.json"]
+    candidates = ["physicists.json", "scientists.json"]
     json_file_path = None
 
-    for candidate in default_candidates:
-        p = os.path.join(BASE_DIR, candidate)
-        if os.path.exists(p):
-            json_file_path = p
+    for candidate in candidates:
+        target_path = os.path.join(BASE_DIR, candidate)
+        if os.path.exists(target_path):
+            json_file_path = target_path
             break
 
     if not json_file_path:
-        print(f"[CRITICAL ERROR] No JSON dataset detected in root directory.")
+        print(f"[CRITICAL ERROR] No dataset found. Checked paths: {candidates}")
+        print(f"[Debug] Files present in workspace: {os.listdir(BASE_DIR)}")
         sys.exit(1)
 
-    print(f"[Pipeline Engine] Localized dataset: '{os.path.basename(json_file_path)}'")
+    dataset_name = os.path.basename(json_file_path)
+    print(f"[Pipeline Engine] Loaded dataset file: '{dataset_name}'")
 
     with open(json_file_path, "r", encoding="utf-8") as f:
         physicists = json.load(f)
 
-    # Filter pending entities (case-insensitive)
+    print(f"[Debug] Total records loaded from {dataset_name}: {len(physicists)}")
+
+    # Strict filtering for pending entities
     pending_entities = [
         p for p in physicists 
         if str(p.get("status", "")).strip().lower() == "pending"
     ]
 
+    print(f"[Debug] Total pending entities detected: {len(pending_entities)}")
+
     if not pending_entities:
-        print("[Pipeline Engine] No pending entities found to process.")
+        print("[Pipeline Engine] No pending entities found to process. Exiting cleanly.")
         return
 
-    # Restrict batch size to prevent API rate limiting and GitHub Action timeouts
+    # Select batch size
     batch = pending_entities[:BATCH_SIZE]
-    print(f"[Pipeline Engine] Found {len(pending_entities)} pending entities. Processing batch of {len(batch)}...")
+    print(f"[Pipeline Engine] Processing batch of {len(batch)} item(s)...")
 
     for entity in batch:
         success = process_physicist(entity)
         if success:
             entity["status"] = "completed"
-            print(f"[Success] Entity '{entity.get('arabic_name') or entity.get('name')}' marked as 'completed'.")
+            entity_name = entity.get("arabic_name") or entity.get("name")
+            print(f"[Success] Entity '{entity_name}' processed and marked as 'completed'.")
         else:
-            print(f"[Failure] Processing failed for '{entity.get('arabic_name') or entity.get('name')}'. Status remains pending.")
+            entity_name = entity.get("arabic_name") or entity.get("name")
+            print(f"[Failure] Entity '{entity_name}' failed processing. Retaining status 'pending'.")
 
-    # Save updated dataset
+    # Save state changes
     with open(json_file_path, "w", encoding="utf-8") as f:
         json.dump(physicists, f, ensure_ascii=False, indent=2)
+    print(f"[Pipeline Engine] State saved successfully to {dataset_name}.")
 
 if __name__ == "__main__":
     main()

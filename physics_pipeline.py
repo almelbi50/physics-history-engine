@@ -43,8 +43,8 @@ ENV_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip()
 MODEL_CANDIDATES = list(dict.fromkeys([
     ENV_MODEL,
     "gemini-3.6-flash",
-    "gemini-3.1-pro",
-    "gemini-3-flash"
+    "gemini-3.1-pro-preview",
+    "gemini-3-flash-preview"
 ]))
 
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))
@@ -213,7 +213,61 @@ def clean_json_response(text: str) -> str:
     # "Invalid control character" errors, while preserving tab/newline/carriage return
     # so multi-line string values inside the JSON remain intact.
     text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
+    # Repair backslashes the model failed to double-escape (see
+    # repair_invalid_backslash_escapes docstring) BEFORE json.loads ever
+    # sees them. This is what was crashing entity 011 (Sadi Carnot) in
+    # workflow run #76: "[CRITICAL ERROR] Stage 2 Generation Failed:
+    # Invalid \escape: line 3 column 3933".
+    text = repair_invalid_backslash_escapes(text)
     return text
+
+# Every backslash in JSON must start one of: \" \\ \/ \b \f \n \r \t \uXXXX.
+# Gemini is explicitly instructed (STAGE_1_PROMPT / STAGE_2_PROMPT) to
+# double-escape LaTeX backslashes so they survive as literal backslashes
+# after json.loads(), but it does not always comply — it frequently emits
+# a single backslash in front of a LaTeX macro name instead (e.g. the
+# 4-character sequence \, t, a, u instead of the correct \, \, t, a, u).
+_JSON_ESCAPE_REPAIR_RE = re.compile(r'\\(?:(["\\/n])|(u[0-9A-Fa-f]{4})|(.))', re.S)
+
+def repair_invalid_backslash_escapes(text: str) -> str:
+    """
+    Repairs single backslashes the model left in front of LaTeX macros so
+    json.loads() can parse the response, instead of either of its two
+    failure modes:
+
+    1. A macro whose first letter is not a legal JSON escape character
+       (\\a, \\c, \\d, \\g, \\k, \\l, \\m, \\o, \\p, \\s, \\v, or any
+       uppercase letter as in \\Rightarrow) makes json.loads() raise
+       "Invalid \\escape" and the whole entity is dropped. This is
+       exactly what happened to entity 011 (سادي كارنو / Sadi Carnot) in
+       workflow run #76: Stage 2 returned "\\Rightarrow"-style macros
+       with a single backslash, and the run logged "[CRITICAL ERROR]
+       Stage 2 Generation Failed: Invalid \\escape: line 3 column 3933"
+       and left the entity's status as "pending" forever (the job still
+       exits 0, so GitHub shows a green check while nothing is ever
+       published for that entity).
+    2. A macro whose first letter DOES happen to be a legal JSON escape
+       (\\t -> tau/text/tan, \\b -> beta, \\f -> frac, \\r -> rho/right,
+       \\u -> upsilon vs. a \\uXXXX unicode escape) is silently decoded
+       into a stray control character followed by the remaining letters
+       instead of raising anything, corrupting the macro without any
+       error at all.
+
+    Both cases are repaired the same way: every backslash that is not
+    already part of a genuinely valid JSON escape (\\", \\\\, \\/, a
+    real \\uXXXX unicode escape, or \\n — kept as-is because it is far
+    more often a real, intended line break in html_content than the
+    start of "\\nu", and turning every intended newline into a literal
+    visible "\\n" in the published article would be worse than
+    occasionally losing the leading "n" of a rare \\nu) is doubled, so
+    json.loads() sees a literal backslash followed by the macro name
+    rather than an illegal or misleading escape sequence.
+    """
+    def _fix(match: "re.Match[str]") -> str:
+        if match.group(1) is not None or match.group(2) is not None:
+            return match.group(0)
+        return "\\\\" + match.group(3)
+    return _JSON_ESCAPE_REPAIR_RE.sub(_fix, text)
 
 def sanitize_latex_execution(html_content: str) -> str:
     """Restores broken LaTeX commands stripped by Python string escapes or JSON parsing."""

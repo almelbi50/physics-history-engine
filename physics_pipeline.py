@@ -43,8 +43,8 @@ ENV_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip()
 MODEL_CANDIDATES = list(dict.fromkeys([
     ENV_MODEL,
     "gemini-3.6-flash",
-    "Gemini 2.5 Pro",
-    "Gemini 2.5 Flash"
+    "gemini-2.5-pro",
+    "gemini-2.5-flash"
 ]))
 
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1"))

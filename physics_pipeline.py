@@ -63,59 +63,48 @@ WP_HEADERS = {
 # ==============================================================================
 # HELPER: ROBUST MODEL GENERATION WITH FALLBACK
 # ==============================================================================
-# Forces the model's native structured-output mode instead of relying purely on
-# prompt instructions to double-escape backslashes/quotes. This does NOT change
-# any schema, field, wording, or QA threshold defined in STAGE_1_PROMPT /
-# STAGE_2_PROMPT -- it only tells the API "encode your response as syntactically
-# valid JSON" at the transport level, which is where Gemini itself is
-# responsible for correctly escaping embedded quotes/backslashes inside string
-# values (the root cause of both the Run #76 backslash failure and the Run
-# #85/#86 "Expecting ',' delimiter" failure on entity 017 / Max Planck).
-JSON_GENERATION_CONFIG = {
-    "response_mime_type": "application/json",
-    # NOTE: previously there was NO explicit cap at all (the SDK's own
-    # default was used), and successfully-published articles (e.g. entities
-    # 013-016: Maxwell/Boltzmann/Hertz/Rontgen) run 13,600-15,800 raw HTML
-    # characters. An earlier version of this constant was set to 8192,
-    # which is LOWER than what those articles actually needed once wrapped
-    # in escaped JSON -- it silently truncated entity 017 (Max Planck) to
-    # 5,881 characters/731 words (published as WordPress post ID 3311)
-    # instead of raising an error, because JSON mode still closes the
-    # (now-shorter) string cleanly. 32768 gives generous headroom above the
-    # largest article seen in production so far while still bounding
-    # worst-case cost/runaway generation.
-    "max_output_tokens": 32768,
-}
-
+# IMPORTANT / LESSON LEARNED (2026-09-10): an earlier version of this function
+# forced generation_config={"response_mime_type": "application/json", ...} on
+# every call, intending to fix the Run #85/#86 "Expecting ',' delimiter"
+# failure at the transport level. It did fix that specific parse error, but
+# introduced a worse regression: enabling Gemini's native JSON mode made the
+# model produce dramatically SHORTER html_content than plain generation does
+# -- confirmed empirically on two separate live regenerations of entity 017
+# (Max Planck): 731 words and then 814 words, versus 1,600-1,991 words for
+# every other successfully-published article (entities 013-016) that used
+# plain (non-JSON-mode) generation. Raising max_output_tokens did NOT fix
+# this; JSON mode itself biases the model toward closing long string fields
+# early to guarantee structural validity.
+#
+# Conclusion: generation must stay IDENTICAL to what produced entities
+# 001-016 (a plain generate_content(prompt) call, no generation_config at
+# all). All JSON-validity robustness now lives entirely downstream in
+# parse_json_with_repairs() / clean_json_response(), which only ever run
+# AFTER generation, as a repair pass on the raw text -- so they cannot
+# influence how much the model chooses to write.
 def generate_with_fallback(prompt: str) -> str:
     """Tries generating content sequentially across target candidate models.
 
-    For each candidate model, first attempts the call with JSON_GENERATION_CONFIG
-    (native JSON mode). If a given model/SDK build rejects that parameter
-    (older models may not support response_mime_type), it transparently retries
-    the SAME model once without the config before moving on to the next
-    candidate. This is purely a transport-level robustness change and does not
-    alter the prompt, schema, or any content requirement.
+    Deliberately identical to the original, pre-2026-09-10 implementation:
+    a single plain generate_content(prompt) call per candidate model, no
+    generation_config. This preserves the exact generation behavior that
+    produced full-length (13,600-15,800 character) articles for entities
+    001-016; JSON-validity is handled entirely as a post-hoc repair step by
+    the caller (see parse_json_with_repairs), never by changing how the
+    model generates.
     """
     last_exception = None
     for model_name in MODEL_CANDIDATES:
-        candidate_model = genai.GenerativeModel(model_name)
-
         try:
-            print(f"[Gemini API] Attempting generation with model: '{model_name}' (JSON mode)...")
-            response = candidate_model.generate_content(prompt, generation_config=JSON_GENERATION_CONFIG)
+            print(f"[Gemini API] Attempting generation with model: '{model_name}'...")
+            candidate_model = genai.GenerativeModel(model_name)
+            response = candidate_model.generate_content(prompt)
             return response.text
-        except Exception as e_json_mode:
-            print(f"[Model Warning] '{model_name}' rejected JSON generation_config: {e_json_mode}")
-            print(f"[Gemini API] Retrying '{model_name}' without generation_config (legacy mode)...")
-            try:
-                response = candidate_model.generate_content(prompt)
-                return response.text
-            except Exception as e_legacy:
-                err_msg = str(e_legacy)
-                print(f"[Model Exception] Engine '{model_name}' returned error: {err_msg}")
-                last_exception = e_legacy
-                continue
+        except Exception as e:
+            err_msg = str(e)
+            print(f"[Model Exception] Engine '{model_name}' returned error: {err_msg}")
+            last_exception = e
+            continue
     raise last_exception if last_exception else RuntimeError("All configured model candidates failed.")
 
 # ==============================================================================
@@ -252,12 +241,17 @@ def clean_json_response(text: str) -> str:
     # "Invalid control character" errors, while preserving tab/newline/carriage return
     # so multi-line string values inside the JSON remain intact.
     text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
-    # Repair backslashes the model failed to double-escape (see
-    # repair_invalid_backslash_escapes docstring) BEFORE json.loads ever
-    # sees them. This is what was crashing entity 011 (Sadi Carnot) in
-    # workflow run #76: "[CRITICAL ERROR] Stage 2 Generation Failed:
-    # Invalid \escape: line 3 column 3933".
-    text = repair_invalid_backslash_escapes(text)
+    # NOTE: backslash/quote repair used to run unconditionally right here,
+    # on every response, whether or not it actually needed repairing. That
+    # is what caused the 2026-09-10 regression: repair_invalid_backslash_escapes
+    # doubling \n even in already-perfectly-valid JSON (corrupting a genuine,
+    # intended newline into literal visible "\n" text) for entities that
+    # never needed any repair in the first place. Both repair passes now
+    # live exclusively in parse_json_with_repairs() below and only ever run
+    # AFTER a first json.loads() attempt on this cleaned-but-unrepaired text
+    # has already failed -- so JSON that was already valid (the normal case
+    # for entities 001-016) is guaranteed to pass through byte-for-byte
+    # unmodified beyond markdown-fence/control-character stripping.
     return text
 
 # Every backslash in JSON must start one of: \" \\ \/ \b \f \n \r \t \uXXXX.
@@ -266,7 +260,7 @@ def clean_json_response(text: str) -> str:
 # after json.loads(), but it does not always comply — it frequently emits
 # a single backslash in front of a LaTeX macro name instead (e.g. the
 # 4-character sequence \, t, a, u instead of the correct \, \, t, a, u).
-_JSON_ESCAPE_REPAIR_RE = re.compile(r'\\(?:(["\\/n])|(u[0-9A-Fa-f]{4})|(.))', re.S)
+_JSON_ESCAPE_REPAIR_RE = re.compile(r'\\(?:(["\\/])|(u[0-9A-Fa-f]{4})|(.))', re.S)
 
 def repair_invalid_backslash_escapes(text: str) -> str:
     """
@@ -287,19 +281,32 @@ def repair_invalid_backslash_escapes(text: str) -> str:
        published for that entity).
     2. A macro whose first letter DOES happen to be a legal JSON escape
        (\\t -> tau/text/tan, \\b -> beta, \\f -> frac, \\r -> rho/right,
-       \\u -> upsilon vs. a \\uXXXX unicode escape) is silently decoded
-       into a stray control character followed by the remaining letters
-       instead of raising anything, corrupting the macro without any
-       error at all.
+       \\u -> upsilon vs. a \\uXXXX unicode escape, \\n -> nu/nabla/neg)
+       is silently decoded into a stray control character followed by the
+       remaining letters instead of raising anything, corrupting the
+       macro without any error at all.
 
-    Both cases are repaired the same way: every backslash that is not
-    already part of a genuinely valid JSON escape (\\", \\\\, \\/, a
-    real \\uXXXX unicode escape, or \\n — kept as-is because it is far
-    more often a real, intended line break in html_content than the
-    start of "\\nu", and turning every intended newline into a literal
-    visible "\\n" in the published article would be worse than
-    occasionally losing the leading "n" of a rare \\nu) is doubled, so
-    json.loads() sees a literal backslash followed by the macro name
+    2026-09-10 FIX: an earlier version of this function kept \\n
+    (backslash-n) on the "already valid, leave alone" side on the theory
+    that it is more often an intended real line break in html_content than
+    the start of "\\nu". Live production data (entity 017 / Max Planck,
+    WordPress post 3312) proved that assumption wrong: \\nu is the
+    frequency symbol and appears constantly in this exact article (Planck's
+    law), and every occurrence was corrupted into a literal newline
+    character followed by a stray "u" -- which then also broke the
+    $...$ -> \\(...\\) inline-math conversion in sanitize_latex_execution()
+    downstream, since that regex excludes real newlines from its match.
+    html_content is HTML, built entirely from block tags (<p>, <li>, ...),
+    so an actual newline character inside a string value has no rendering
+    value here; \\n is now ALWAYS doubled like any other unrecognized
+    macro-start, at the cost of an extremely rare genuinely-intended
+    newline surviving as the visible two characters "\\n" instead of a
+    real line break -- a purely cosmetic, non-breaking regression, versus
+    silently corrupting every \\nu/\\nabla/\\neg in the article.
+
+    Every backslash that is not already part of a genuinely valid JSON
+    escape (\\", \\\\, \\/, or a real \\uXXXX unicode escape) is doubled,
+    so json.loads() sees a literal backslash followed by the macro name
     rather than an illegal or misleading escape sequence.
     """
     def _fix(match: "re.Match[str]") -> str:
@@ -378,28 +385,40 @@ def parse_json_with_repairs(raw_text: str, stage_label: str) -> dict:
     response into a Python dict, without ever touching STAGE_1_PROMPT /
     STAGE_2_PROMPT, the required schema, or any QA threshold.
 
-    Order of attempts (each strictly more invasive than the last, and each
-    only runs if the previous one failed):
-      1. clean_json_response() as before (markdown-fence stripping, control
-         character stripping, backslash-escape repair) + json.loads().
-      2. If that raises JSONDecodeError, additionally apply
-         repair_unescaped_string_quotes() and retry json.loads() once.
-    If step 2 also fails, the ORIGINAL exception from step 1 is re-raised
+    Escalating attempts, each ONLY run if the previous one failed, so JSON
+    that is already valid is always returned via step 1 completely
+    untouched by either repair pass:
+      1. clean_json_response() (markdown-fence/control-character stripping
+         only) + json.loads().
+      2. If that raises JSONDecodeError: additionally apply
+         repair_invalid_backslash_escapes() (fixes Run #76-style single-
+         backslash LaTeX macros, e.g. \\Rightarrow / \\nu) and retry.
+      3. If that also fails: additionally apply
+         repair_unescaped_string_quotes() on top (fixes the 2026-09-10
+         Run #85/#86-style stray-quote failure) and retry once more.
+    If step 3 also fails, the ORIGINAL exception from step 1 is re-raised
     unchanged so error messages/log signatures stay identical to before for
-    every failure mode this repair does not fix.
+    any failure mode none of these repairs fix.
     """
     cleaned = clean_json_response(raw_text)
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError as first_error:
-        print(f"[{stage_label}] Initial parse failed ({first_error}); attempting quote-repair pass...")
+        print(f"[{stage_label}] Initial parse failed ({first_error}); attempting backslash-repair pass...")
+        backslash_repaired = repair_invalid_backslash_escapes(cleaned)
         try:
-            repaired = repair_unescaped_string_quotes(cleaned)
-            data = json.loads(repaired)
-            print(f"[{stage_label}] Quote-repair pass succeeded.")
+            data = json.loads(backslash_repaired)
+            print(f"[{stage_label}] Backslash-repair pass succeeded.")
             return data
         except json.JSONDecodeError:
-            raise first_error
+            print(f"[{stage_label}] Backslash-repair insufficient; attempting quote-repair pass...")
+            try:
+                quote_repaired = repair_unescaped_string_quotes(backslash_repaired)
+                data = json.loads(quote_repaired)
+                print(f"[{stage_label}] Quote-repair pass succeeded.")
+                return data
+            except json.JSONDecodeError:
+                raise first_error
 
 def sanitize_latex_execution(html_content: str) -> str:
     """Restores broken LaTeX commands stripped by Python string escapes or JSON parsing."""

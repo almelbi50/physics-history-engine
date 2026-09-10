@@ -63,20 +63,48 @@ WP_HEADERS = {
 # ==============================================================================
 # HELPER: ROBUST MODEL GENERATION WITH FALLBACK
 # ==============================================================================
+# Forces the model's native structured-output mode instead of relying purely on
+# prompt instructions to double-escape backslashes/quotes. This does NOT change
+# any schema, field, wording, or QA threshold defined in STAGE_1_PROMPT /
+# STAGE_2_PROMPT -- it only tells the API "encode your response as syntactically
+# valid JSON" at the transport level, which is where Gemini itself is
+# responsible for correctly escaping embedded quotes/backslashes inside string
+# values (the root cause of both the Run #76 backslash failure and the Run
+# #85/#86 "Expecting ',' delimiter" failure on entity 017 / Max Planck).
+JSON_GENERATION_CONFIG = {
+    "response_mime_type": "application/json",
+    "max_output_tokens": 8192,
+}
+
 def generate_with_fallback(prompt: str) -> str:
-    """Tries generating content sequentially across target candidate models."""
+    """Tries generating content sequentially across target candidate models.
+
+    For each candidate model, first attempts the call with JSON_GENERATION_CONFIG
+    (native JSON mode). If a given model/SDK build rejects that parameter
+    (older models may not support response_mime_type), it transparently retries
+    the SAME model once without the config before moving on to the next
+    candidate. This is purely a transport-level robustness change and does not
+    alter the prompt, schema, or any content requirement.
+    """
     last_exception = None
     for model_name in MODEL_CANDIDATES:
+        candidate_model = genai.GenerativeModel(model_name)
+
         try:
-            print(f"[Gemini API] Attempting generation with model: '{model_name}'...")
-            candidate_model = genai.GenerativeModel(model_name)
-            response = candidate_model.generate_content(prompt)
+            print(f"[Gemini API] Attempting generation with model: '{model_name}' (JSON mode)...")
+            response = candidate_model.generate_content(prompt, generation_config=JSON_GENERATION_CONFIG)
             return response.text
-        except Exception as e:
-            err_msg = str(e)
-            print(f"[Model Exception] Engine '{model_name}' returned error: {err_msg}")
-            last_exception = e
-            continue
+        except Exception as e_json_mode:
+            print(f"[Model Warning] '{model_name}' rejected JSON generation_config: {e_json_mode}")
+            print(f"[Gemini API] Retrying '{model_name}' without generation_config (legacy mode)...")
+            try:
+                response = candidate_model.generate_content(prompt)
+                return response.text
+            except Exception as e_legacy:
+                err_msg = str(e_legacy)
+                print(f"[Model Exception] Engine '{model_name}' returned error: {err_msg}")
+                last_exception = e_legacy
+                continue
     raise last_exception if last_exception else RuntimeError("All configured model candidates failed.")
 
 # ==============================================================================
@@ -269,6 +297,99 @@ def repair_invalid_backslash_escapes(text: str) -> str:
         return "\\\\" + match.group(3)
     return _JSON_ESCAPE_REPAIR_RE.sub(_fix, text)
 
+def repair_unescaped_string_quotes(text: str) -> str:
+    """
+    Best-effort structural repair for literal, unescaped double-quote (\")
+    characters embedded inside JSON string values -- e.g. a quoted phrase
+    inside an academic article's html_content that Gemini forgot to encode
+    as \\\". This is the exact signature behind the 2026-09-10 failure on
+    entity 017 (Max Planck), workflow runs #85 and #86:
+    "[CRITICAL ERROR] Stage 2 Generation Failed: Expecting ',' delimiter:
+    line 3 column ... " -- a raw '"' terminates a JSON string early, so the
+    parser expects a ',' or '}' right after it and finds ordinary article
+    text instead.
+
+    This is a LAST-RESORT repair only. It is never applied to JSON that
+    already parses successfully (see parse_json_with_repairs below), so it
+    cannot regress or alter any previously-working generation, entity, or
+    already-published article.
+
+    Strategy: walk the text tracking whether the scanner is currently
+    inside a JSON string. When an unescaped '"' appears while inside a
+    string, look ahead past whitespace: if the next significant character
+    is a valid JSON structural token (, : } ] or end-of-text, the quote is
+    treated as a genuine string terminator. Otherwise it is a stray literal
+    quote belonging to the article text and is escaped in place as \\",
+    with scanning continuing inside the same string.
+    """
+    out = []
+    in_string = False
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+
+        if not in_string:
+            out.append(ch)
+            if ch == '"':
+                in_string = True
+            i += 1
+            continue
+
+        if ch == '\\' and i + 1 < n:
+            # Preserve any escape sequence exactly as-is; it is already valid.
+            out.append(ch)
+            out.append(text[i + 1])
+            i += 2
+            continue
+
+        if ch == '"':
+            j = i + 1
+            while j < n and text[j] in ' \t\r\n':
+                j += 1
+            next_significant = text[j] if j < n else ''
+            if next_significant in ',:}]' or next_significant == '':
+                out.append(ch)
+                in_string = False
+                i += 1
+                continue
+            out.append('\\"')  # stray literal quote -> escape and stay in-string
+            i += 1
+            continue
+
+        out.append(ch)
+        i += 1
+
+    return ''.join(out)
+
+def parse_json_with_repairs(raw_text: str, stage_label: str) -> dict:
+    """
+    Single choke point used by both Stage 1 and Stage 2 to turn a raw model
+    response into a Python dict, without ever touching STAGE_1_PROMPT /
+    STAGE_2_PROMPT, the required schema, or any QA threshold.
+
+    Order of attempts (each strictly more invasive than the last, and each
+    only runs if the previous one failed):
+      1. clean_json_response() as before (markdown-fence stripping, control
+         character stripping, backslash-escape repair) + json.loads().
+      2. If that raises JSONDecodeError, additionally apply
+         repair_unescaped_string_quotes() and retry json.loads() once.
+    If step 2 also fails, the ORIGINAL exception from step 1 is re-raised
+    unchanged so error messages/log signatures stay identical to before for
+    every failure mode this repair does not fix.
+    """
+    cleaned = clean_json_response(raw_text)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as first_error:
+        print(f"[{stage_label}] Initial parse failed ({first_error}); attempting quote-repair pass...")
+        try:
+            repaired = repair_unescaped_string_quotes(cleaned)
+            data = json.loads(repaired)
+            print(f"[{stage_label}] Quote-repair pass succeeded.")
+            return data
+        except json.JSONDecodeError:
+            raise first_error
+
 def sanitize_latex_execution(html_content: str) -> str:
     """Restores broken LaTeX commands stripped by Python string escapes or JSON parsing."""
     if not html_content:
@@ -423,8 +544,7 @@ def process_physicist(entity: dict) -> bool:
     
     try:
         raw_text_1 = generate_with_fallback(prompt_1)
-        stage_1_json_str = clean_json_response(raw_text_1)
-        stage_1_data = json.loads(stage_1_json_str)
+        stage_1_data = parse_json_with_repairs(raw_text_1, "Stage 1")
         print("[Stage 1] Blueprint generated successfully.")
     except Exception as e:
         print(f"[CRITICAL ERROR] Stage 1 Generation Failed: {e}")
@@ -436,8 +556,7 @@ def process_physicist(entity: dict) -> bool:
 
     try:
         raw_text_2 = generate_with_fallback(prompt_2)
-        stage_2_json_str = clean_json_response(raw_text_2)
-        stage_2_data = json.loads(stage_2_json_str)
+        stage_2_data = parse_json_with_repairs(raw_text_2, "Stage 2")
     except Exception as e:
         print(f"[CRITICAL ERROR] Stage 2 Generation Failed: {e}")
         return False
@@ -502,6 +621,7 @@ def main():
     batch = pending_entities[:BATCH_SIZE]
     print(f"[Pipeline Engine] Processing batch of {len(batch)} item(s)...")
 
+    failed_entities = []
     for entity in batch:
         success = process_physicist(entity)
         if success:
@@ -511,10 +631,26 @@ def main():
         else:
             entity_name = entity.get("arabic_name") or entity.get("name")
             print(f"[Failure] Entity '{entity_name}' failed processing. Retaining status 'pending'.")
+            failed_entities.append(entity_name)
 
     with open(json_file_path, "w", encoding="utf-8") as f:
         json.dump(physicists, f, ensure_ascii=False, indent=2)
     print(f"[Pipeline Engine] State saved successfully to {dataset_name}.")
+
+    # --------------------------------------------------------------------
+    # VISIBILITY FIX: previously this function always returned normally, so
+    # main() always exited 0 -- the GitHub Actions run showed a green check
+    # even when every entity in the batch failed (this is exactly what
+    # happened silently in Run #76 and again in Runs #85/#86). Nothing about
+    # WHICH entities count as success/failure changes here -- that logic is
+    # still decided entirely by process_physicist()/the QA gate above. This
+    # only makes the job's exit code (and therefore the GitHub badge/status)
+    # truthfully reflect that outcome. No previously-completed entity's
+    # status is touched by this block.
+    # --------------------------------------------------------------------
+    if failed_entities:
+        print(f"::error::Pipeline run had {len(failed_entities)} failed entit(y/ies): {', '.join(failed_entities)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

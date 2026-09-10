@@ -315,6 +315,70 @@ def repair_invalid_backslash_escapes(text: str) -> str:
         return "\\\\" + match.group(3)
     return _JSON_ESCAPE_REPAIR_RE.sub(_fix, text)
 
+def escape_raw_control_chars_in_strings(text: str) -> str:
+    """
+    Repairs literal, raw control characters (most commonly an actual newline
+    character, 0x0A) that appear directly inside a JSON string value instead
+    of the proper 2-character escape sequence. Per the JSON spec, every
+    control character (U+0000-U+001F) inside a string MUST be escaped; a raw
+    one makes json.loads() raise "Invalid control character at: ...".
+
+    This is exactly the failure seen on the 2026-09-10 re-run of entity 017
+    (Max Planck) once the article-length fix restored full-length generation:
+    "[CRITICAL ERROR] Stage 2 Generation Failed: Invalid control character
+    at: line 3 column 13942" -- deep into a long, otherwise well-formed
+    html_content string, where the model included a literal newline instead
+    of writing "\\n".
+
+    LAST-RESORT repair only, exactly like repair_unescaped_string_quotes: it
+    never runs on JSON that already parses (see parse_json_with_repairs), so
+    it cannot alter or regress any previously-working generation.
+
+    Strategy: walk the text tracking whether the scanner is inside a JSON
+    string (same in_string bookkeeping as repair_unescaped_string_quotes).
+    Any already-escaped sequence (a backslash followed by any character) is
+    copied through untouched. Any RAW character with a code point below
+    0x20 encountered while inside a string is replaced with its proper JSON
+    escape (\\n, \\r, \\t, or \\u00XX for anything else); the same character
+    outside a string (ordinary JSON whitespace between tokens) is left
+    completely untouched, since that is always legal.
+    """
+    _SIMPLE_ESCAPES = {'\n': '\\n', '\r': '\\r', '\t': '\\t'}
+    out = []
+    in_string = False
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+
+        if not in_string:
+            out.append(ch)
+            if ch == '"':
+                in_string = True
+            i += 1
+            continue
+
+        if ch == '\\' and i + 1 < n:
+            out.append(ch)
+            out.append(text[i + 1])
+            i += 2
+            continue
+
+        if ch == '"':
+            out.append(ch)
+            in_string = False
+            i += 1
+            continue
+
+        if ord(ch) < 0x20:
+            out.append(_SIMPLE_ESCAPES.get(ch, f'\\u{ord(ch):04x}'))
+            i += 1
+            continue
+
+        out.append(ch)
+        i += 1
+
+    return ''.join(out)
+
 def repair_unescaped_string_quotes(text: str) -> str:
     """
     Best-effort structural repair for literal, unescaped double-quote (\")
@@ -387,16 +451,20 @@ def parse_json_with_repairs(raw_text: str, stage_label: str) -> dict:
 
     Escalating attempts, each ONLY run if the previous one failed, so JSON
     that is already valid is always returned via step 1 completely
-    untouched by either repair pass:
-      1. clean_json_response() (markdown-fence/control-character stripping
-         only) + json.loads().
+    untouched by any repair pass:
+      1. clean_json_response() (markdown-fence/control-character-outside-
+         strings stripping only) + json.loads().
       2. If that raises JSONDecodeError: additionally apply
          repair_invalid_backslash_escapes() (fixes Run #76-style single-
          backslash LaTeX macros, e.g. \\Rightarrow / \\nu) and retry.
       3. If that also fails: additionally apply
+         escape_raw_control_chars_in_strings() on top (fixes the
+         2026-09-10 "Invalid control character" failure -- a literal raw
+         newline left inside a long html_content string) and retry.
+      4. If that also fails: additionally apply
          repair_unescaped_string_quotes() on top (fixes the 2026-09-10
          Run #85/#86-style stray-quote failure) and retry once more.
-    If step 3 also fails, the ORIGINAL exception from step 1 is re-raised
+    If step 4 also fails, the ORIGINAL exception from step 1 is re-raised
     unchanged so error messages/log signatures stay identical to before for
     any failure mode none of these repairs fix.
     """
@@ -405,20 +473,31 @@ def parse_json_with_repairs(raw_text: str, stage_label: str) -> dict:
         return json.loads(cleaned)
     except json.JSONDecodeError as first_error:
         print(f"[{stage_label}] Initial parse failed ({first_error}); attempting backslash-repair pass...")
-        backslash_repaired = repair_invalid_backslash_escapes(cleaned)
+        step = repair_invalid_backslash_escapes(cleaned)
         try:
-            data = json.loads(backslash_repaired)
+            data = json.loads(step)
             print(f"[{stage_label}] Backslash-repair pass succeeded.")
             return data
         except json.JSONDecodeError:
-            print(f"[{stage_label}] Backslash-repair insufficient; attempting quote-repair pass...")
-            try:
-                quote_repaired = repair_unescaped_string_quotes(backslash_repaired)
-                data = json.loads(quote_repaired)
-                print(f"[{stage_label}] Quote-repair pass succeeded.")
-                return data
-            except json.JSONDecodeError:
-                raise first_error
+            pass
+
+        print(f"[{stage_label}] Backslash-repair insufficient; attempting control-character-repair pass...")
+        step = escape_raw_control_chars_in_strings(step)
+        try:
+            data = json.loads(step)
+            print(f"[{stage_label}] Control-character-repair pass succeeded.")
+            return data
+        except json.JSONDecodeError:
+            pass
+
+        print(f"[{stage_label}] Control-character-repair insufficient; attempting quote-repair pass...")
+        step = repair_unescaped_string_quotes(step)
+        try:
+            data = json.loads(step)
+            print(f"[{stage_label}] Quote-repair pass succeeded.")
+            return data
+        except json.JSONDecodeError:
+            raise first_error
 
 def sanitize_latex_execution(html_content: str) -> str:
     """Restores broken LaTeX commands stripped by Python string escapes or JSON parsing."""

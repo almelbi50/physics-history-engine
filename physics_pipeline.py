@@ -73,7 +73,18 @@ WP_HEADERS = {
 # #85/#86 "Expecting ',' delimiter" failure on entity 017 / Max Planck).
 JSON_GENERATION_CONFIG = {
     "response_mime_type": "application/json",
-    "max_output_tokens": 8192,
+    # NOTE: previously there was NO explicit cap at all (the SDK's own
+    # default was used), and successfully-published articles (e.g. entities
+    # 013-016: Maxwell/Boltzmann/Hertz/Rontgen) run 13,600-15,800 raw HTML
+    # characters. An earlier version of this constant was set to 8192,
+    # which is LOWER than what those articles actually needed once wrapped
+    # in escaped JSON -- it silently truncated entity 017 (Max Planck) to
+    # 5,881 characters/731 words (published as WordPress post ID 3311)
+    # instead of raising an error, because JSON mode still closes the
+    # (now-shorter) string cleanly. 32768 gives generous headroom above the
+    # largest article seen in production so far while still bounding
+    # worst-case cost/runaway generation.
+    "max_output_tokens": 32768,
 }
 
 def generate_with_fallback(prompt: str) -> str:

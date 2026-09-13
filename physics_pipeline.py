@@ -504,6 +504,21 @@ def sanitize_latex_execution(html_content: str) -> str:
     if not html_content:
         return ""
 
+    # 2026-09-13 FIX: repair_invalid_backslash_escapes() (per its own 2026-09-10
+    # docstring) now ALWAYS doubles a bare \n into a literal, visible two-character
+    # "\n" in html_content rather than risk corrupting \nu/\nabla/\neq -- a trade-off
+    # documented there as "purely cosmetic, non-breaking". Live production data
+    # (WordPress draft post 3368 / Albert Einstein, reviewed 2026-09-13) shows this
+    # is not actually rare: 188 literal "\n" artifacts appeared, one after almost
+    # every block tag (e.g. "</h2>\n<p>"), rendering as visible reversed "n\" glyphs
+    # in RTL text throughout the entire article -- a readability-breaking defect,
+    # not a cosmetic one. html_content is built entirely from block tags (<p>, <li>,
+    # <h2>, <table>, ...), so a bare newline between them carries no rendering
+    # meaning at all; it is always safe to delete. A LaTeX macro's backslash is
+    # NEVER followed by a non-letter (\nu, \nabla, \neq, ... always continue with
+    # a-z/A-Z), so this only ever matches the stray artifact, never a macro.
+    html_content = re.sub(r'\\n(?![a-zA-Z])', '', html_content)
+
     html_content = html_content.replace('\t', r'\t')
     html_content = re.sub(r'\\\$', '$', html_content)
 

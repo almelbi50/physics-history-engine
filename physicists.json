@@ -4,42 +4,42 @@
     "name": "Ibn al-Haytham",
     "arabic_name": "الحسن ابن الهيثم",
     "period": "Islamic Golden Age",
-    "status": "completed"
+    "status": "pending"
   },
   {
     "id": "002",
     "name": "Al-Biruni",
     "arabic_name": "أبو الريحان البيروني",
     "period": "Islamic Golden Age",
-    "status": "completed"
+    "status": "pending"
   },
   {
     "id": "003",
     "name": "Galileo Galilei",
     "arabic_name": "غاليلو غاليلي",
     "period": "Scientific Revolution",
-    "status": "completed"
+    "status": "pending"
   },
   {
     "id": "004",
     "name": "Johannes Kepler",
     "arabic_name": "يوهانس كبلر",
     "period": "Scientific Revolution",
-    "status": "completed"
+    "status": "pending"
   },
   {
     "id": "005",
     "name": "Christiaan Huygens",
     "arabic_name": "كريستيان هويغنز",
     "period": "Classical Mechanics & Optics",
-    "status": "completed"
+    "status": "pending"
   },
   {
     "id": "006",
     "name": "Isaac Newton",
     "arabic_name": "إسحاق نيوتن",
     "period": "Classical Mechanics & Optics",
-    "status": "completed"
+    "status": "pending"
   },
   {
     "id": "007",
